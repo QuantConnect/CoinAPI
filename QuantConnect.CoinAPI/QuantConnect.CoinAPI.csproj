@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
@@ -30,6 +30,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="QuantConnect.Lean.Engine" Version="2.5.*" />
+		<PackageReference Include="CoinAPI.WebSocket.V1" Version="1.6.7" />
 	</ItemGroup>
 
 	<ItemGroup>
