@@ -33,17 +33,17 @@ namespace QuantConnect.CoinAPI
 
         private readonly FileInfo _coinApiSymbolsListFile = new FileInfo(
             Config.Get("coinapi-default-symbol-list-file", "CoinApiSymbols.json"));
-        // LEAN market <-> CoinAPI exchange id maps
+        /// <summary>
+        /// LEAN market <-> CoinAPI exchange id maps
+        /// <see href="https://support.coinapi.io/hc/en-us/articles/360018953751-What-exchanges-are-supported"/>
+        /// </summary>
         public static readonly Dictionary<string, string> MapMarketsToExchangeIds = new Dictionary<string, string>
         {
             { Market.Coinbase, "COINBASE" },
             { Market.Bitfinex, "BITFINEX" },
             { Market.Binance, "BINANCE" },
-            { Market.FTX, "FTX" },
-            { Market.FTXUS, "FTXUS" },
             { Market.Kraken, "KRAKEN" },
             { Market.BinanceUS, "BINANCEUS" },
-            { Market.Bybit, "BYBIT" },
         };
         private static readonly Dictionary<string, string> MapExchangeIdsToMarkets =
             MapMarketsToExchangeIds.ToDictionary(x => x.Value, x => x.Key);
