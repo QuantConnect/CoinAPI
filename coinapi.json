@@ -1,0 +1,16 @@
+{
+	"description": "Cryptocurrency focused historical and streaming data service. CoinAPI covers dozens of crypto exchanges. Our integration allows research, backtest, optimization, and live trading with CoinAPI as the data-source.",
+	
+	"platforms-features": [
+		{
+			"Platforms": ["Cloud Platform", "Local Platform", "LEAN CLI"],
+			"Download Data": [0,1,1],
+			"Backtesting": [0,1,1],
+			"Optimization": [0,1,1],
+			"Live Trading":	[0,1,1]
+		}
+	],
+	"data-supported": [ "Crypto" ], 
+	"more-information": "https://www.coinapi.io",
+	"documentation": ""
+}
