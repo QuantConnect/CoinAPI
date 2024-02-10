@@ -18,6 +18,7 @@ using QuantConnect.Logging;
 using QuantConnect.Securities;
 using QuantConnect.Brokerages;
 using QuantConnect.Configuration;
+using QuantConnect.CoinAPI.Models;
 
 namespace QuantConnect.CoinAPI
 {
@@ -125,8 +126,7 @@ namespace QuantConnect.CoinAPI
         /// <returns>The CoinAPI symbol id</returns>
         public string GetBrokerageSymbol(Symbol symbol)
         {
-            string symbolId;
-            if (!_symbolMap.TryGetValue(symbol, out symbolId))
+            if (!_symbolMap.TryGetValue(symbol, out var symbolId))
             {
                 throw new Exception($"CoinApiSymbolMapper.GetBrokerageSymbol(): Symbol not found: {symbol}");
             }
@@ -199,7 +199,17 @@ namespace QuantConnect.CoinAPI
                 json = $"{RestUrl}/v1/symbols?filter_symbol_id={list}&apiKey={_apiKey}".DownloadData();
             }
 
-            var result = JsonConvert.DeserializeObject<List<CoinApiSymbol>>(json);
+            List<CoinApiSymbol>? result = new();
+
+            try
+            {
+                result = JsonConvert.DeserializeObject<List<CoinApiSymbol>>(json);
+            }
+            catch (JsonSerializationException)
+            {
+                var error = JsonConvert.DeserializeObject<CoinApiErrorResponse>(json);
+                throw new Exception(error.Error);
+            }
 
             // There were cases of entries in the CoinApiSymbols list with the following pattern:
             // <Exchange>_SPOT_<BaseCurrency>_<QuoteCurrency>_<ExtraSuffix>

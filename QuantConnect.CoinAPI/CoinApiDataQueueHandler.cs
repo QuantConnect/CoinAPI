@@ -369,7 +369,7 @@ namespace QuantConnect.CoinAPI
             return result;
         }
 
-        private void OnError(object sender, Exception e)
+        private void OnError(object? sender, Exception e)
         {
             Log.Error(e);
         }
