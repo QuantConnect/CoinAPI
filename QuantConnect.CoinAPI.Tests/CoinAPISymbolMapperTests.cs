@@ -58,5 +58,22 @@ namespace QuantConnect.CoinAPI.Tests
 
             Assert.That(symbolId, Is.EqualTo(coinApiSymbolId));
         }
+
+        [TestCase("BTCUSDT", Market.Binance, "BINANCEFTS_PERP_BTC_USDT")]
+        public void ReturnsCorrectBrokerageFutureSymbol(string leanTicker, string market, string coinApiSymbolId)
+        {
+            var symbol = Symbol.Create(leanTicker, SecurityType.CryptoFuture, market);
+
+            var symbolId = _coinApiSymbolMapper.GetBrokerageSymbol(symbol);
+
+            Assert.That(symbolId, Is.EqualTo(coinApiSymbolId));
+        }
+
+        [TestCase("BTCUSDT", Market.Kraken)]
+        public void TryGetWrongBrokerageFutureSymbolThrowException(string leanTicker, string market)
+        {
+            var symbol = Symbol.Create(leanTicker, SecurityType.CryptoFuture, market);
+            Assert.Throws<Exception>(() => _coinApiSymbolMapper.GetBrokerageSymbol(symbol));
+        }
     }
 }
