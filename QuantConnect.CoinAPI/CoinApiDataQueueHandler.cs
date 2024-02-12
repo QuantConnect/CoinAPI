@@ -69,7 +69,7 @@ namespace QuantConnect.CoinAPI
             if (_dataAggregator == null)
             {
                 _dataAggregator =
-                    Composer.Instance.GetExportedValueByTypeName<IDataAggregator>(Config.Get("data-aggregator", "QuantConnect.Lean.Engine.DataFeeds.AggregationManager"));
+                    Composer.Instance.GetExportedValueByTypeName<IDataAggregator>(Config.Get("data-aggregator", "QuantConnect.Lean.Engine.DataFeeds.AggregationManager"), forceTypeNameOnExisting: false);
             }
             var product = Config.GetValue<CoinApiProduct>("coinapi-product");
             _streamingDataType = product < CoinApiProduct.Streamer
