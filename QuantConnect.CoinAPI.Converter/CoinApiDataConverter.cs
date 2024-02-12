@@ -35,11 +35,8 @@ namespace QuantConnect.CoinAPI.Converter
             Market.Coinbase,
             Market.Bitfinex,
             Market.Binance,
-            Market.FTX,
-            Market.FTXUS,
             Market.Kraken,
-            Market.BinanceUS,
-            Market.Bybit
+            Market.BinanceUS
         }.ToHashSet();
 
         private readonly DirectoryInfo _rawDataFolder;
