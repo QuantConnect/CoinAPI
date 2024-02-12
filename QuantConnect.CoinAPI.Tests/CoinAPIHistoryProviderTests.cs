@@ -25,7 +25,7 @@ namespace QuantConnect.CoinAPI.Tests
     [TestFixture]
     public class CoinAPIHistoryProviderTests
     {
-        private static readonly Symbol _CoinbaseBtcUsdSymbol = Symbol.Create("BTCUSD", SecurityType.Crypto, Market.GDAX);
+        private static readonly Symbol _CoinbaseBtcUsdSymbol = Symbol.Create("BTCUSD", SecurityType.Crypto, Market.Coinbase);
         private static readonly Symbol _BitfinexBtcUsdSymbol = Symbol.Create("BTCUSD", SecurityType.Crypto, Market.Bitfinex);
         private readonly CoinApiDataQueueHandlerMock _coinApiDataQueueHandler = new CoinApiDataQueueHandlerMock();
 

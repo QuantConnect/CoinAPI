@@ -21,25 +21,25 @@ using QuantConnect.Data.Market;
 
 namespace QuantConnect.CoinAPI.Tests
 {
-    public class CoinApiTestHelper
+    public static class CoinApiTestHelper
     {
-        public readonly Symbol BTCUSDKraken = Symbol.Create("BTCUSD", SecurityType.Crypto, Market.Kraken);
-        public readonly Symbol BTCUSDBitfinex = Symbol.Create("BTCUSD", SecurityType.Crypto, Market.Bitfinex);
-        public readonly Symbol BTCUSDCoinbase = Symbol.Create("BTCUSD", SecurityType.Crypto, Market.Coinbase);
-        public readonly Symbol BTCUSDTBinance = Symbol.Create("BTCUSDT", SecurityType.Crypto, Market.Binance);
-        public readonly Symbol BTCUSDTBinanceUS = Symbol.Create("BTCUSDT", SecurityType.Crypto, Market.BinanceUS);
+        public static readonly Symbol BTCUSDKraken = Symbol.Create("BTCUSD", SecurityType.Crypto, Market.Kraken);
+        public static readonly Symbol BTCUSDBitfinex = Symbol.Create("BTCUSD", SecurityType.Crypto, Market.Bitfinex);
+        public static readonly Symbol BTCUSDCoinbase = Symbol.Create("BTCUSD", SecurityType.Crypto, Market.Coinbase);
+        public static readonly Symbol BTCUSDTBinance = Symbol.Create("BTCUSDT", SecurityType.Crypto, Market.Binance);
+        public static readonly Symbol BTCUSDTBinanceUS = Symbol.Create("BTCUSDT", SecurityType.Crypto, Market.BinanceUS);
 
         /// <summary>
         /// PERPETUAL BTCUSDT
         /// </summary>
-        public readonly Symbol BTCUSDTFutureBinance = Symbol.Create("BTCUSDT", SecurityType.CryptoFuture, Market.Binance);
+        public static readonly Symbol BTCUSDTFutureBinance = Symbol.Create("BTCUSDT", SecurityType.CryptoFuture, Market.Binance);
 
-        public void AssertSymbol(Symbol actualSymbol, Symbol expectedSymbol)
+        public static void AssertSymbol(Symbol actualSymbol, Symbol expectedSymbol)
         {
             Assert.IsTrue(actualSymbol == expectedSymbol, $"Unexpected Symbol: Expected {expectedSymbol}, but received {actualSymbol}.");
         }
 
-        public void AssertBaseData(List<BaseData> tradeBars, Resolution expectedResolution)
+        public static void AssertBaseData(List<BaseData> tradeBars, Resolution expectedResolution)
         {
             Assert.Greater(tradeBars.Count, 0);
             foreach (var tick in tradeBars)
@@ -74,7 +74,7 @@ namespace QuantConnect.CoinAPI.Tests
             }
         }
 
-        public void ProcessFeed(IEnumerator<BaseData> enumerator, Action<BaseData>? callback = null, Action? throwExceptionCallback = null)
+        public static void ProcessFeed(IEnumerator<BaseData> enumerator, Action<BaseData>? callback = null, Action? throwExceptionCallback = null)
         {
             Task.Factory.StartNew(() =>
             {
@@ -102,17 +102,17 @@ namespace QuantConnect.CoinAPI.Tests
             }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
-        public SubscriptionDataConfig GetSubscriptionDataConfigs(Symbol symbol, Resolution resolution)
+        public static SubscriptionDataConfig GetSubscriptionDataConfigs(Symbol symbol, Resolution resolution)
         {
             return GetSubscriptionDataConfig<TradeBar>(symbol, resolution);
         }
 
-        public SubscriptionDataConfig GetSubscriptionTickDataConfigs(Symbol symbol)
+        public static SubscriptionDataConfig GetSubscriptionTickDataConfigs(Symbol symbol)
         {
             return new SubscriptionDataConfig(GetSubscriptionDataConfig<Tick>(symbol, Resolution.Tick), tickType: TickType.Trade);
         }
 
-        private SubscriptionDataConfig GetSubscriptionDataConfig<T>(Symbol symbol, Resolution resolution)
+        private static SubscriptionDataConfig GetSubscriptionDataConfig<T>(Symbol symbol, Resolution resolution)
         {
             return new SubscriptionDataConfig(
                 typeof(T),

@@ -25,8 +25,6 @@ namespace QuantConnect.CoinAPI.Tests
     [TestFixture]
     public class CoinApiDataQueueHandlerTest
     {
-        private readonly CoinApiTestHelper _coinApiTestHelper = new();
-
         private CoinApiDataQueueHandler _coinApiDataQueueHandler;
         private CancellationTokenSource _cancellationTokenSource;
 
@@ -53,10 +51,10 @@ namespace QuantConnect.CoinAPI.Tests
             var resetEvent = new AutoResetEvent(false);
             var tradeBars = new List<BaseData>();
             var resolution = Resolution.Second;
-            var symbol = _coinApiTestHelper.BTCUSDCoinbase;
-            var dataConfig = _coinApiTestHelper.GetSubscriptionDataConfigs(symbol, resolution);
+            var symbol = CoinApiTestHelper.BTCUSDCoinbase;
+            var dataConfig = CoinApiTestHelper.GetSubscriptionDataConfigs(symbol, resolution);
 
-            _coinApiTestHelper.ProcessFeed(
+            CoinApiTestHelper.ProcessFeed(
                 _coinApiDataQueueHandler.Subscribe(dataConfig, (s, e) => { }),
                 tick =>
                 {
@@ -77,9 +75,9 @@ namespace QuantConnect.CoinAPI.Tests
 
             _coinApiDataQueueHandler.Unsubscribe(dataConfig);
 
-            _coinApiTestHelper.AssertSymbol(tradeBars.First().Symbol, symbol);
+            CoinApiTestHelper.AssertSymbol(tradeBars.First().Symbol, symbol);
 
-            _coinApiTestHelper.AssertBaseData(tradeBars, resolution);
+            CoinApiTestHelper.AssertBaseData(tradeBars, resolution);
         }
 
         [Test]
@@ -92,21 +90,21 @@ namespace QuantConnect.CoinAPI.Tests
 
             var symbolBaseData = new ConcurrentDictionary<Symbol, List<BaseData>>
             {
-                [_coinApiTestHelper.BTCUSDKraken] = new(),
-                [_coinApiTestHelper.BTCUSDTBinance] = new(),
-                [_coinApiTestHelper.BTCUSDBitfinex] = new(),
-                [_coinApiTestHelper.BTCUSDCoinbase] = new()
+                [CoinApiTestHelper.BTCUSDKraken] = new(),
+                [CoinApiTestHelper.BTCUSDTBinance] = new(),
+                [CoinApiTestHelper.BTCUSDBitfinex] = new(),
+                [CoinApiTestHelper.BTCUSDCoinbase] = new()
             };
 
             var dataConfigs = new List<SubscriptionDataConfig>();
             foreach (var symbol in symbolBaseData.Keys)
             {
-                dataConfigs.Add(_coinApiTestHelper.GetSubscriptionDataConfigs(symbol, resolution));
+                dataConfigs.Add(CoinApiTestHelper.GetSubscriptionDataConfigs(symbol, resolution));
             }
 
             foreach (var config in dataConfigs)
             {
-                _coinApiTestHelper.ProcessFeed(
+                CoinApiTestHelper.ProcessFeed(
                     _coinApiDataQueueHandler.Subscribe(config, (s, e) => { }),
                     tick =>
                     {
@@ -147,7 +145,7 @@ namespace QuantConnect.CoinAPI.Tests
 
             foreach (var data in symbolBaseData.Values)
             {
-                _coinApiTestHelper.AssertBaseData(data, resolution);
+                CoinApiTestHelper.AssertBaseData(data, resolution);
             }
         }
 
@@ -157,10 +155,10 @@ namespace QuantConnect.CoinAPI.Tests
             var resetEvent = new AutoResetEvent(false);
             var resolution = Resolution.Tick;
             var tickData = new List<BaseData>();
-            var symbol = _coinApiTestHelper.BTCUSDTFutureBinance;
-            var config = _coinApiTestHelper.GetSubscriptionTickDataConfigs(symbol);
+            var symbol = CoinApiTestHelper.BTCUSDTFutureBinance;
+            var config = CoinApiTestHelper.GetSubscriptionTickDataConfigs(symbol);
 
-            _coinApiTestHelper.ProcessFeed(
+            CoinApiTestHelper.ProcessFeed(
                 _coinApiDataQueueHandler.Subscribe(config, (s, e) => { }),
                 tick =>
                 {
@@ -181,12 +179,12 @@ namespace QuantConnect.CoinAPI.Tests
             });
 
             resetEvent.WaitOne(TimeSpan.FromSeconds(30), _cancellationTokenSource.Token);
-            
+
             _coinApiDataQueueHandler.Unsubscribe(config);
 
-            _coinApiTestHelper.AssertSymbol(tickData.First().Symbol, symbol);
-            
-            _coinApiTestHelper.AssertBaseData(tickData, resolution);
+            CoinApiTestHelper.AssertSymbol(tickData.First().Symbol, symbol);
+
+            CoinApiTestHelper.AssertBaseData(tickData, resolution);
         }
     }
 }
