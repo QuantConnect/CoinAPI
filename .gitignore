@@ -33,6 +33,7 @@
 *.hex
 
 # QC Cloud Setup Bash Files
+!QuantConnect.CoinAPI.Converter/*.sh
 *.sh
 # Include docker launch scripts for Mac/Linux
 !run_docker.sh

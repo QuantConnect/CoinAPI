@@ -36,4 +36,10 @@
 		<ProjectReference Include="..\QuantConnect.CoinAPI\QuantConnect.CoinAPI.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Update="sync.sh">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
 </Project>
