@@ -400,7 +400,7 @@ namespace QuantConnect.CoinAPI
         {
             try
             {
-                const int productId = 333;
+                const int productId = 335;
                 var userId = Config.GetInt("job-user-id");
                 var token = Config.Get("api-access-token");
                 var organizationId = Config.Get("job-organization-id", null);
