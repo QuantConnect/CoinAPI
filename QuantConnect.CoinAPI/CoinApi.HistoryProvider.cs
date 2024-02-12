@@ -27,6 +27,11 @@ namespace QuantConnect.CoinAPI
 {
     public partial class CoinApiDataQueueHandler
     {
+        /// <summary>
+        /// Indicates whether the warning for invalid history <see cref="TickType"/> has been fired.
+        /// </summary>
+        private bool _invalidHistoryDataTypeWarningFired;
+
         public override void Initialize(HistoryProviderInitializeParameters parameters)
         {
             // NOP
@@ -54,13 +59,17 @@ namespace QuantConnect.CoinAPI
 
             if (historyRequest.Resolution == Resolution.Tick)
             {
-                Log.Error("CoinApiDataQueueHandler.GetHistory(): No historical ticks, only OHLCV timeseries");
+                Log.Error($"CoinApiDataQueueHandler.GetHistory(): No historical ticks, only OHLCV timeseries");
                 yield break;
             }
 
             if (historyRequest.DataType == typeof(QuoteBar))
             {
-                Log.Error("CoinApiDataQueueHandler.GetHistory(): No historical QuoteBars , only TradeBars");
+                if (!_invalidHistoryDataTypeWarningFired)
+                {
+                    Log.Error("CoinApiDataQueueHandler.GetHistory(): No historical QuoteBars , only TradeBars");
+                    _invalidHistoryDataTypeWarningFired = true;
+                }
                 yield break;
             }
 

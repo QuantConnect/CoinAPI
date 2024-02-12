@@ -30,6 +30,8 @@ namespace QuantConnect.CoinAPI.Tests
             {
                 using var _coinApiDataQueueHandler = new CoinApiDataQueueHandler();
             });
+
+            Config.Reset();
         }
     }
 }
