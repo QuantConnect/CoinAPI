@@ -28,24 +28,10 @@ namespace QuantConnect.CoinAPI.Tests
         private CoinApiDataQueueHandler _coinApiDataQueueHandler;
         private CancellationTokenSource _cancellationTokenSource;
 
-        [OneTimeSetUp]
-        public void OneTimeSetUp()
-        {
-            _coinApiDataQueueHandler = new();
-        }
-
-        [OneTimeTearDown]
-        public void OneTimeTearDown()
-        {
-            if (_coinApiDataQueueHandler != null)
-            {
-                _coinApiDataQueueHandler.Dispose();
-            }
-        }
-
         [SetUp]
         public void SetUp()
         {
+            _coinApiDataQueueHandler = new();
             _cancellationTokenSource = new();
         }
 
@@ -53,6 +39,11 @@ namespace QuantConnect.CoinAPI.Tests
         public void TearDown()
         {
             _cancellationTokenSource.Dispose();
+
+            if (_coinApiDataQueueHandler != null)
+            {
+                _coinApiDataQueueHandler.Dispose();
+            }
         }
 
         [Test]
@@ -190,7 +181,18 @@ namespace QuantConnect.CoinAPI.Tests
 
             resetEvent.WaitOne(TimeSpan.FromSeconds(60), _cancellationTokenSource.Token);
 
+            // if seq is empty, give additional chance
+            if (tickData.Count == 0) 
+            {
+                resetEvent.WaitOne(TimeSpan.FromSeconds(60), _cancellationTokenSource.Token);
+            }
+
             _coinApiDataQueueHandler.Unsubscribe(config);
+
+            if (tickData.Count == 0)
+            {
+                Assert.Fail($"{nameof(CoinApiDataQueueHandlerTest)}.{nameof(SubscribeToBTCUSDFutureTickOnDifferentMarkets)} is nothing returned. {symbol}|{resolution}|tickData = {tickData.Count}");
+            }
 
             CoinApiTestHelper.AssertSymbol(tickData.First().Symbol, symbol);
 
