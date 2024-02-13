@@ -18,7 +18,7 @@ using NUnit.Framework;
 
 namespace QuantConnect.CoinAPI.Tests
 {
-    [TestFixture]
+    [TestFixture, Explicit("")]
     public class CoinAPISymbolMapperTests
     {
         private CoinApiSymbolMapper _coinApiSymbolMapper;

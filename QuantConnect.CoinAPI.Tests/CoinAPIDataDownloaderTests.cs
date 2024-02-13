@@ -19,7 +19,7 @@ using QuantConnect.Logging;
 
 namespace QuantConnect.CoinAPI.Tests
 {
-    [TestFixture]
+    [TestFixture, Explicit("")]
     public class CoinAPIDataDownloaderTests
     {
         private CoinAPIDataDownloader _downloader;

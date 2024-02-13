@@ -63,7 +63,8 @@ namespace QuantConnect.CoinAPI.Tests
                 {
                     if (tick != null)
                     {
-                        Log.Debug($"{nameof(CoinApiDataQueueHandlerTest)}: tick: {tick}");
+                        // Log.Debug($"{nameof(CoinApiDataQueueHandlerTest)}: tick: {tick}");
+                        Log.Trace($"{nameof(CoinApiDataQueueHandlerTest)}.{nameof(ProcessFeed)}: tick {tick}");
                         tradeBars.Add(tick);
 
                         if (tradeBars.Count > 5)
@@ -117,6 +118,7 @@ namespace QuantConnect.CoinAPI.Tests
                         if (tick != null)
                         {
                             // Log.Debug($"{nameof(CoinApiDataQueueHandlerTest)}: tick: {tick}");
+                            Log.Trace($"{nameof(CoinApiDataQueueHandlerTest)}.{nameof(ProcessFeed)}: tick {tick}");
                             symbolBaseData[tick.Symbol].Add(tick);
                         }
                     },
@@ -173,7 +175,8 @@ namespace QuantConnect.CoinAPI.Tests
                 {
                     if (tick != null)
                     {
-                        Log.Debug($"{nameof(CoinApiDataQueueHandlerTest)}: tick: {tick}");
+                        //Log.Debug($"{nameof(CoinApiDataQueueHandlerTest)}: tick: {tick}");
+                        Log.Trace($"{nameof(CoinApiDataQueueHandlerTest)}.{nameof(ProcessFeed)}: tick {tick}");
                         tickData.Add(tick);
 
                         if (tickData.Count > 5)
@@ -218,6 +221,9 @@ namespace QuantConnect.CoinAPI.Tests
                     while (enumerator.MoveNext() && !cancellationToken.IsCancellationRequested)
                     {
                         BaseData tick = enumerator.Current;
+
+                        Log.Trace($"{nameof(CoinApiDataQueueHandlerTest)}.{nameof(ProcessFeed)}: tick {tick}");
+
                         callback?.Invoke(tick);
                         Thread.Sleep(100);
                     }
