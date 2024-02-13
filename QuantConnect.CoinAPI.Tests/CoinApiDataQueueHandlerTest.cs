@@ -154,13 +154,13 @@ namespace QuantConnect.CoinAPI.Tests
         }
 
         [Test]
-        public void SubscribeToBTCUSDFutureTickOnDifferentMarkets()
+        public void SubscribeToBTCUSDTFutureSecondBinance()
         {
             var resetEvent = new AutoResetEvent(false);
-            var resolution = Resolution.Tick;
+            var resolution = Resolution.Second;
             var tickData = new List<BaseData>();
             var symbol = CoinApiTestHelper.BTCUSDTFutureBinance;
-            var config = CoinApiTestHelper.GetSubscriptionTickDataConfigs(symbol);
+            var config = CoinApiTestHelper.GetSubscriptionDataConfigs(symbol, resolution);
 
             ProcessFeed(
                 _coinApiDataQueueHandler.Subscribe(config, (s, e) => { }),
@@ -193,7 +193,7 @@ namespace QuantConnect.CoinAPI.Tests
 
             if (tickData.Count == 0)
             {
-                Assert.Fail($"{nameof(CoinApiDataQueueHandlerTest)}.{nameof(SubscribeToBTCUSDFutureTickOnDifferentMarkets)} is nothing returned. {symbol}|{resolution}|tickData = {tickData.Count}");
+                Assert.Fail($"{nameof(CoinApiDataQueueHandlerTest)}.{nameof(SubscribeToBTCUSDTFutureSecondBinance)} is nothing returned. {symbol}|{resolution}|tickData = {tickData.Count}");
             }
 
             CoinApiTestHelper.AssertSymbol(tickData.First().Symbol, symbol);
@@ -213,12 +213,12 @@ namespace QuantConnect.CoinAPI.Tests
                     {
                         BaseData tick = enumerator.Current;
 
-                        Log.Trace($"{nameof(CoinApiDataQueueHandlerTest)}.{nameof(ProcessFeed)}: tick {tick}");
-
                         if (tick != null)
                         {
                             callback?.Invoke(tick);
                         }
+
+                        cancellationToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(500));
                     }
                 }
                 catch
