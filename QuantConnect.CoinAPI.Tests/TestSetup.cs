@@ -22,10 +22,10 @@ using QuantConnect.Configuration;
 namespace QuantConnect.CoinAPI.Tests
 {
     [SetUpFixture]
-    public class TestSetup
+    public static class TestSetup
     {
         [OneTimeSetUp]
-        public void GlobalSetup()
+        public static void GlobalSetup()
         {
             // Log.DebuggingEnabled = true;
             Log.LogHandler = new CompositeLogHandler();

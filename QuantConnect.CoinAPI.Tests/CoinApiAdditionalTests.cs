@@ -21,13 +21,6 @@ namespace QuantConnect.CoinAPI.Tests
     [TestFixture]
     public class CoinApiAdditionalTests
     {
-        [TearDown]
-        public void TearDown()
-        {
-            TestSetup t = new();
-            t.GlobalSetup();
-        }
-
         [Test]
         public void ThrowsOnFailedAuthentication()
         {
@@ -37,6 +30,9 @@ namespace QuantConnect.CoinAPI.Tests
             {
                 using var _coinApiDataQueueHandler = new CoinApiDataQueueHandler();
             });
+
+            // reset api key
+            TestSetup.GlobalSetup();
         }
     }
 }
