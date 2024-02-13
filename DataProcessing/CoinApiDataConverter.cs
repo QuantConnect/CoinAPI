@@ -19,8 +19,9 @@ using QuantConnect.Util;
 using System.Diagnostics;
 using QuantConnect.Logging;
 using QuantConnect.ToolBox;
+using QuantConnect.CoinAPI;
 
-namespace QuantConnect.CoinAPI.Converter
+namespace QuantConnect.DataProcessing
 {
     /// <summary>
     /// Console application for converting CoinApi raw data into Lean data format for high resolutions (tick, second and minute)

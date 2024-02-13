@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuantConnect.CoinAPI", "Qua
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuantConnect.CoinAPI.Tests", "QuantConnect.CoinAPI.Tests\QuantConnect.CoinAPI.Tests.csproj", "{337CEE6E-639A-448D-95ED-2C1628E26AF2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuantConnect.CoinAPI.Converter", "QuantConnect.CoinAPI.Converter\QuantConnect.CoinAPI.Converter.csproj", "{881514B4-641E-4EDC-8020-6BEA0CC8F48C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataProcessing", "DataProcessing\DataProcessing.csproj", "{881514B4-641E-4EDC-8020-6BEA0CC8F48C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

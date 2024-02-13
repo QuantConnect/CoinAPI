@@ -49,8 +49,8 @@ jobs:
       - name: Build QuantConnect.CoinAPI
         run: dotnet build ./QuantConnect.CoinAPI/QuantConnect.CoinAPI.csproj /p:Configuration=Release /v:quiet /p:WarningLevel=1
 
-      - name: Build QuantConnect.CoinAPI.Converter
-        run: dotnet build ./QuantConnect.CoinAPI.Converter/QuantConnect.CoinAPI.Converter.csproj /p:Configuration=Release /v:quiet /p:WarningLevel=1
+      - name: Build DataProcessing
+        run: dotnet build ./DataProcessing/DataProcessing.csproj /p:Configuration=Release /v:quiet /p:WarningLevel=1
 
       - name: Build QuantConnect.CoinAPI.Tests
         run: dotnet build ./QuantConnect.CoinAPI.Tests/QuantConnect.CoinAPI.Tests.csproj /p:Configuration=Release /v:quiet /p:WarningLevel=1

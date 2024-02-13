@@ -16,7 +16,7 @@
 
 using System.Globalization;
 
-namespace QuantConnect.CoinAPI.Converter
+namespace QuantConnect.DataProcessing
 {
     /// <summary>
     /// Coin API Main entry point for ToolBox.

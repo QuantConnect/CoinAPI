@@ -14,7 +14,7 @@
  * limitations under the License.
 */
 
-namespace QuantConnect.CoinAPI.Converter
+namespace QuantConnect.DataProcessing
 {
     /// <summary>
     /// Contains information extracted from CoinAPI entry name

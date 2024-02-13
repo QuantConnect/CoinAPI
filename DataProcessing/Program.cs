@@ -2,7 +2,7 @@
 using System.Globalization;
 using QuantConnect.Configuration;
 
-namespace QuantConnect.CoinAPI.Converter
+namespace QuantConnect.DataProcessing
 {
     internal class Program
     {

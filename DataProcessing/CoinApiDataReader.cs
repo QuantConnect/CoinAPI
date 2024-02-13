@@ -21,7 +21,7 @@ using QuantConnect.Brokerages;
 using QuantConnect.Data.Market;
 using CompressionMode = System.IO.Compression.CompressionMode;
 
-namespace QuantConnect.CoinAPI.Converter
+namespace QuantConnect.DataProcessing
 {
     /// <summary>
     /// Reader class for CoinAPI crypto raw data.
