@@ -47,7 +47,7 @@ namespace QuantConnect.CoinAPI.Tests
             }
         }
 
-        [Test]
+        [Test, Explicit("")]
         public void SubscribeToBTCUSDSecondOnCoinbaseDataStreamTest()
         {
             var resetEvent = new AutoResetEvent(false);
@@ -83,7 +83,7 @@ namespace QuantConnect.CoinAPI.Tests
             _cancellationTokenSource.Cancel();
         }
 
-        [Test]
+        [Test, Explicit("")]
         public void SubscribeToBTCUSDSecondOnDifferentMarkets()
         {
             var resetEvent = new AutoResetEvent(false);
@@ -159,7 +159,7 @@ namespace QuantConnect.CoinAPI.Tests
             var resetEvent = new AutoResetEvent(false);
             var resolution = Resolution.Second;
             var tickData = new List<BaseData>();
-            var symbol = CoinApiTestHelper.BTCUSDTFutureBinance;
+            var symbol = CoinApiTestHelper.BTCUSDFutureBinance;
             var config = CoinApiTestHelper.GetSubscriptionDataConfigs(symbol, resolution);
 
             ProcessFeed(

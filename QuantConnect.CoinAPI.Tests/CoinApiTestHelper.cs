@@ -32,7 +32,7 @@ namespace QuantConnect.CoinAPI.Tests
         /// <summary>
         /// PERPETUAL BTCUSDT
         /// </summary>
-        public static readonly Symbol BTCUSDTFutureBinance = Symbol.Create("BTCUSDT", SecurityType.CryptoFuture, Market.Binance);
+        public static readonly Symbol BTCUSDFutureBinance = Symbol.Create("BTCUSD", SecurityType.CryptoFuture, Market.Binance);
 
         public static void AssertSymbol(Symbol actualSymbol, Symbol expectedSymbol)
         {
