@@ -22,6 +22,7 @@ using QuantConnect.Data.Market;
 using QuantConnect.CoinAPI.Messages;
 using QuantConnect.Lean.Engine.DataFeeds;
 using HistoryRequest = QuantConnect.Data.HistoryRequest;
+using QuantConnect.CoinAPI.Models;
 
 namespace QuantConnect.CoinAPI
 {
@@ -112,8 +113,17 @@ namespace QuantConnect.CoinAPI
                 // Log the information associated with the API Key's rest call limits.
                 TraceRestUsage(response);
 
-                // Deserialize to array
-                var coinApiHistoryBars = JsonConvert.DeserializeObject<HistoricalDataMessage[]>(response.Content);
+                HistoricalDataMessage[]? coinApiHistoryBars;
+                try
+                {
+                    // Deserialize to array
+                    coinApiHistoryBars = JsonConvert.DeserializeObject<HistoricalDataMessage[]>(response.Content);
+                }
+                catch (JsonSerializationException)
+                {
+                    var error = JsonConvert.DeserializeObject<CoinApiErrorResponse>(response.Content);
+                    throw new Exception(error.Error);
+                }
 
                 // Can be no historical data for a short period interval
                 if (!coinApiHistoryBars.Any())
