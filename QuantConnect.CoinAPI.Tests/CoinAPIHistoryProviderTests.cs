@@ -27,7 +27,13 @@ namespace QuantConnect.CoinAPI.Tests
     {
         private static readonly Symbol _CoinbaseBtcUsdSymbol = Symbol.Create("BTCUSD", SecurityType.Crypto, Market.Coinbase);
         private static readonly Symbol _BitfinexBtcUsdSymbol = Symbol.Create("BTCUSD", SecurityType.Crypto, Market.Bitfinex);
-        private readonly CoinApiDataQueueHandlerMock _coinApiDataQueueHandler = new CoinApiDataQueueHandlerMock();
+        private CoinApiDataQueueHandlerMock _coinApiDataQueueHandler;
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            _coinApiDataQueueHandler = new CoinApiDataQueueHandlerMock();
+        }
 
         // -- DATA TO TEST --
         private static TestCaseData[] TestData => new[]

@@ -28,20 +28,30 @@ namespace QuantConnect.CoinAPI.Tests
         private CoinApiDataQueueHandler _coinApiDataQueueHandler;
         private CancellationTokenSource _cancellationTokenSource;
 
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            _coinApiDataQueueHandler = new();
+        }
+
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
+            if (_coinApiDataQueueHandler != null)
+            {
+                _coinApiDataQueueHandler.Dispose();
+            }
+        }
+
         [SetUp]
         public void SetUp()
         {
-            _coinApiDataQueueHandler = new();
             _cancellationTokenSource = new();
         }
 
         [TearDown]
         public void TearDown()
         {
-            if (_coinApiDataQueueHandler != null)
-            {
-                _coinApiDataQueueHandler.Dispose();
-            }
             _cancellationTokenSource.Dispose();
         }
 
