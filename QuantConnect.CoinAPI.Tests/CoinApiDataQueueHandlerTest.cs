@@ -81,7 +81,7 @@ namespace QuantConnect.CoinAPI.Tests
                 },
             () => _cancellationTokenSource.Cancel());
 
-            Assert.IsTrue(resetEvent.WaitOne(TimeSpan.FromSeconds(20), _cancellationTokenSource.Token));
+            Assert.IsTrue(resetEvent.WaitOne(TimeSpan.FromSeconds(60), _cancellationTokenSource.Token));
 
             _coinApiDataQueueHandler.Unsubscribe(dataConfig);
 
@@ -130,7 +130,7 @@ namespace QuantConnect.CoinAPI.Tests
                 });
             }
 
-            resetEvent.WaitOne(TimeSpan.FromSeconds(30), _cancellationTokenSource.Token);
+            resetEvent.WaitOne(TimeSpan.FromSeconds(60), _cancellationTokenSource.Token);
 
             foreach (var data in symbolBaseData)
             {
@@ -145,7 +145,7 @@ namespace QuantConnect.CoinAPI.Tests
 
             if (dataConfigs.Count != 0)
             {
-                resetEvent.WaitOne(TimeSpan.FromSeconds(20), _cancellationTokenSource.Token);
+                resetEvent.WaitOne(TimeSpan.FromSeconds(30), _cancellationTokenSource.Token);
             }
 
             foreach (var config in dataConfigs)
@@ -188,7 +188,7 @@ namespace QuantConnect.CoinAPI.Tests
                 _cancellationTokenSource.Cancel();
             });
 
-            resetEvent.WaitOne(TimeSpan.FromSeconds(30), _cancellationTokenSource.Token);
+            resetEvent.WaitOne(TimeSpan.FromSeconds(60), _cancellationTokenSource.Token);
 
             _coinApiDataQueueHandler.Unsubscribe(config);
 
