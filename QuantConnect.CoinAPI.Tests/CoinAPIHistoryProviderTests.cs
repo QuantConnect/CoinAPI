@@ -22,7 +22,7 @@ using QuantConnect.Securities;
 
 namespace QuantConnect.CoinAPI.Tests
 {
-    [TestFixture, Explicit("")]
+    [TestFixture]
     public class CoinAPIHistoryProviderTests
     {
         private static readonly Symbol _CoinbaseBtcUsdSymbol = Symbol.Create("BTCUSD", SecurityType.Crypto, Market.Coinbase);

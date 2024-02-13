@@ -47,7 +47,7 @@ namespace QuantConnect.CoinAPI.Tests
             }
         }
 
-        [Test, Explicit("")]
+        [Test]
         public void SubscribeToBTCUSDSecondOnCoinbaseDataStreamTest()
         {
             var resetEvent = new AutoResetEvent(false);
@@ -61,8 +61,7 @@ namespace QuantConnect.CoinAPI.Tests
                 _cancellationTokenSource.Token,
                 tick =>
                 {
-                    // Log.Debug($"{nameof(CoinApiDataQueueHandlerTest)}: tick: {tick}");
-                    Log.Trace($"{nameof(CoinApiDataQueueHandlerTest)}.{nameof(ProcessFeed)}: tick {tick}");
+                    Log.Debug($"{nameof(CoinApiDataQueueHandlerTest)}.{nameof(SubscribeToBTCUSDSecondOnCoinbaseDataStreamTest)}: {tick}");
                     tradeBars.Add(tick);
 
                     if (tradeBars.Count > 5)
@@ -83,7 +82,7 @@ namespace QuantConnect.CoinAPI.Tests
             _cancellationTokenSource.Cancel();
         }
 
-        [Test, Explicit("")]
+        [Test]
         public void SubscribeToBTCUSDSecondOnDifferentMarkets()
         {
             var resetEvent = new AutoResetEvent(false);
@@ -112,8 +111,7 @@ namespace QuantConnect.CoinAPI.Tests
                     _cancellationTokenSource.Token,
                     tick =>
                     {
-                        // Log.Debug($"{nameof(CoinApiDataQueueHandlerTest)}: tick: {tick}");
-                        Log.Trace($"{nameof(CoinApiDataQueueHandlerTest)}.{nameof(ProcessFeed)}: tick {tick}");
+                        Log.Debug($"{nameof(CoinApiDataQueueHandlerTest)}.{nameof(SubscribeToBTCUSDSecondOnDifferentMarkets)}: {tick}");
                         symbolBaseData[tick.Symbol].Add(tick);
                     },
                 () =>
@@ -167,8 +165,7 @@ namespace QuantConnect.CoinAPI.Tests
                 _cancellationTokenSource.Token,
                 tick =>
                 {
-                    //Log.Debug($"{nameof(CoinApiDataQueueHandlerTest)}: tick: {tick}");
-                    Log.Trace($"{nameof(CoinApiDataQueueHandlerTest)}.{nameof(ProcessFeed)}: tick {tick}");
+                    Log.Debug($"{nameof(CoinApiDataQueueHandlerTest)}.{nameof(SubscribeToBTCUSDTFutureSecondBinance)}: {tick}");
                     tickData.Add(tick);
 
                     if (tickData.Count > 5)
