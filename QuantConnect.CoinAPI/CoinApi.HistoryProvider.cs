@@ -28,6 +28,8 @@ namespace QuantConnect.CoinAPI
 {
     public partial class CoinApiDataQueueHandler
     {
+        private readonly RestClient restClient = new RestClient();
+
         /// <summary>
         /// Indicates whether the warning for invalid history <see cref="TickType"/> has been fired.
         /// </summary>
@@ -99,16 +101,13 @@ namespace QuantConnect.CoinAPI
                 var coinApiEndTime = currentEndTime.ToStringInvariant("s");
 
                 // Construct URL for rest request
-                var baseUrl =
-                    "https://rest.coinapi.io/v1/ohlcv/" +
+                restClient.BaseUrl = new Uri("https://rest.coinapi.io/v1/ohlcv/" +
                     $"{coinApiSymbol}/history?period_id={coinApiPeriod}&limit={HistoricalDataPerRequestLimit}" +
-                    $"&time_start={coinApiStartTime}&time_end={coinApiEndTime}";
+                    $"&time_start={coinApiStartTime}&time_end={coinApiEndTime}");
 
-                // Execute
-                var client = new RestClient(baseUrl);
                 var restRequest = new RestRequest(Method.GET);
                 restRequest.AddHeader("X-CoinAPI-Key", _apiKey);
-                var response = client.Execute(restRequest);
+                var response = restClient.Execute(restRequest);
 
                 // Log the information associated with the API Key's rest call limits.
                 TraceRestUsage(response);
