@@ -16,6 +16,7 @@
 
 using NUnit.Framework;
 using QuantConnect.Data;
+using QuantConnect.Util;
 using QuantConnect.Logging;
 using QuantConnect.Data.Market;
 using System.Collections.Concurrent;
@@ -55,8 +56,9 @@ namespace QuantConnect.CoinAPI.Tests
             var symbol = CoinApiTestHelper.BTCUSDCoinbase;
             var dataConfig = CoinApiTestHelper.GetSubscriptionDataConfigs(symbol, resolution);
 
-            CoinApiTestHelper.ProcessFeed(
+            ProcessFeed(
                 _coinApiDataQueueHandler.Subscribe(dataConfig, (s, e) => { }),
+                _cancellationTokenSource.Token,
                 tick =>
                 {
                     if (tick != null)
@@ -79,6 +81,8 @@ namespace QuantConnect.CoinAPI.Tests
             CoinApiTestHelper.AssertSymbol(tradeBars.First().Symbol, symbol);
 
             CoinApiTestHelper.AssertBaseData(tradeBars, resolution);
+
+            _cancellationTokenSource.Cancel();
         }
 
         [Test]
@@ -105,13 +109,14 @@ namespace QuantConnect.CoinAPI.Tests
 
             foreach (var config in dataConfigs)
             {
-                CoinApiTestHelper.ProcessFeed(
+                ProcessFeed(
                     _coinApiDataQueueHandler.Subscribe(config, (s, e) => { }),
+                    _cancellationTokenSource.Token,
                     tick =>
                     {
                         if (tick != null)
                         {
-                            Log.Debug($"{nameof(CoinApiDataQueueHandlerTest)}: tick: {tick}");
+                            // Log.Debug($"{nameof(CoinApiDataQueueHandlerTest)}: tick: {tick}");
                             symbolBaseData[tick.Symbol].Add(tick);
                         }
                     },
@@ -148,6 +153,8 @@ namespace QuantConnect.CoinAPI.Tests
             {
                 CoinApiTestHelper.AssertBaseData(data, resolution);
             }
+
+            _cancellationTokenSource.Cancel();
         }
 
         [Test]
@@ -159,8 +166,9 @@ namespace QuantConnect.CoinAPI.Tests
             var symbol = CoinApiTestHelper.BTCUSDTFutureBinance;
             var config = CoinApiTestHelper.GetSubscriptionTickDataConfigs(symbol);
 
-            CoinApiTestHelper.ProcessFeed(
+            ProcessFeed(
                 _coinApiDataQueueHandler.Subscribe(config, (s, e) => { }),
+                _cancellationTokenSource.Token,
                 tick =>
                 {
                     if (tick != null)
@@ -197,6 +205,35 @@ namespace QuantConnect.CoinAPI.Tests
             CoinApiTestHelper.AssertSymbol(tickData.First().Symbol, symbol);
 
             CoinApiTestHelper.AssertBaseData(tickData, resolution);
+
+            _cancellationTokenSource.Cancel();
+        }
+
+        private Task ProcessFeed(IEnumerator<BaseData> enumerator, CancellationToken cancellationToken, Action<BaseData>? callback = null, Action? throwExceptionCallback = null)
+        {
+            return Task.Factory.StartNew(() =>
+            {
+                try
+                {
+                    while (enumerator.MoveNext() && !cancellationToken.IsCancellationRequested)
+                    {
+                        BaseData tick = enumerator.Current;
+                        callback?.Invoke(tick);
+                        Thread.Sleep(100);
+                    }
+                }
+                catch
+                {
+                    throw;
+                }
+            }, cancellationToken).ContinueWith(task =>
+            {
+                if (throwExceptionCallback != null)
+                {
+                    throwExceptionCallback();
+                }
+                Log.Error("The throwExceptionCallback is null.");
+            }, TaskContinuationOptions.OnlyOnFaulted);
         }
     }
 }

@@ -74,34 +74,6 @@ namespace QuantConnect.CoinAPI.Tests
             }
         }
 
-        public static void ProcessFeed(IEnumerator<BaseData> enumerator, Action<BaseData>? callback = null, Action? throwExceptionCallback = null)
-        {
-            Task.Factory.StartNew(() =>
-            {
-                try
-                {
-                    while (enumerator.MoveNext())
-                    {
-                        BaseData tick = enumerator.Current;
-                        callback?.Invoke(tick);
-
-                        Thread.Sleep(1000);
-                    }
-                }
-                catch
-                {
-                    throw;
-                }
-            }).ContinueWith(task =>
-            {
-                if (throwExceptionCallback != null)
-                {
-                    throwExceptionCallback();
-                }
-                Log.Error("The throwExceptionCallback is null.");
-            }, TaskContinuationOptions.OnlyOnFaulted);
-        }
-
         public static SubscriptionDataConfig GetSubscriptionDataConfigs(Symbol symbol, Resolution resolution)
         {
             return GetSubscriptionDataConfig<TradeBar>(symbol, resolution);
