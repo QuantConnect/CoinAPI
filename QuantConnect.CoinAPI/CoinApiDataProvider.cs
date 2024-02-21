@@ -49,14 +49,14 @@ namespace QuantConnect.DataSource.CoinAPI
             { Resolution.Daily, "1DAY" },
         };
 
-        private readonly string _apiKey = Config.Get("coinapi-api-key");
-        private readonly string[] _streamingDataType;
-        private readonly CoinApiWsClient _client;
+        private string? _apiKey;
+        private string[]? _streamingDataType;
+        private CoinApiWsClient? _client;
         private readonly object _locker = new object();
         private ConcurrentDictionary<string, Symbol> _symbolCache = new ConcurrentDictionary<string, Symbol>();
-        private readonly CoinApiSymbolMapper _symbolMapper = new CoinApiSymbolMapper();
-        private readonly IDataAggregator _dataAggregator;
-        private readonly EventBasedDataQueueHandlerSubscriptionManager _subscriptionManager;
+        private CoinApiSymbolMapper? _symbolMapper;
+        private IDataAggregator? _dataAggregator;
+        private EventBasedDataQueueHandlerSubscriptionManager? _subscriptionManager;
 
         private readonly TimeSpan _subscribeDelay = TimeSpan.FromMilliseconds(250);
         private readonly object _lockerSubscriptions = new object();
@@ -69,32 +69,28 @@ namespace QuantConnect.DataSource.CoinAPI
         private readonly ConcurrentDictionary<string, Tick> _previousQuotes = new ConcurrentDictionary<string, Tick>();
 
         /// <summary>
+        /// 
+        /// </summary>
+        private bool _initialized;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="CoinApiDataProvider"/> class
         /// </summary>
         public CoinApiDataProvider()
         {
-            _dataAggregator = Composer.Instance.GetPart<IDataAggregator>();
-            if (_dataAggregator == null)
+            if (!Config.TryGetValue<string>("coinapi-api-key", out var configApiKey) || string.IsNullOrEmpty(configApiKey))
             {
-                _dataAggregator =
-                    Composer.Instance.GetExportedValueByTypeName<IDataAggregator>(Config.Get("data-aggregator", "QuantConnect.Lean.Engine.DataFeeds.AggregationManager"), forceTypeNameOnExisting: false);
+                // If the API key is not provided, we can't do anything.
+                // The handler might going to be initialized using a node packet job.
+                return;
             }
-            var product = Config.GetValue<CoinApiProduct>("coinapi-product");
-            _streamingDataType = product < CoinApiProduct.Streamer
-                ? new[] { "trade" }
-                : new[] { "trade", "quote" };
 
-            Log.Trace($"{nameof(CoinApiDataProvider)}: using plan '{product}'. Available data types: '{string.Join(",", _streamingDataType)}'");
+            if (!Config.TryGetValue<string>("coinapi-product", out var product) || string.IsNullOrEmpty(product))
+            {
+                product = "Free";
+            }
 
-            ValidateSubscription();
-
-            _client = new CoinApiWsClient();
-            _client.TradeEvent += OnTrade;
-            _client.QuoteEvent += OnQuote;
-            _client.Error += OnError;
-            _subscriptionManager = new EventBasedDataQueueHandlerSubscriptionManager();
-            _subscriptionManager.SubscribeImpl += (s, t) => Subscribe(s);
-            _subscriptionManager.UnsubscribeImpl += (s, t) => Unsubscribe(s);
+            Initialize(configApiKey, product);
         }
 
         /// <summary>
@@ -110,6 +106,11 @@ namespace QuantConnect.DataSource.CoinAPI
                 return null;
             }
 
+            if (_dataAggregator == null || _subscriptionManager == null)
+            {
+                throw new InvalidOperationException($"{nameof(CoinApiDataProvider)}.{nameof(Subscribe)}: {nameof(_dataAggregator)} or {nameof(_subscriptionManager)} is not initialized.");
+            }
+
             var enumerator = _dataAggregator.Add(dataConfig, newDataAvailableHandler);
             _subscriptionManager.Subscribe(dataConfig);
 
@@ -122,6 +123,63 @@ namespace QuantConnect.DataSource.CoinAPI
         /// <param name="job">Job we're subscribing for</param>
         public void SetJob(LiveNodePacket job)
         {
+            if (_initialized)
+            {
+                return;
+            }
+
+            if (!job.BrokerageData.TryGetValue("coinapi-api-key", out var apiKey) || string.IsNullOrEmpty(apiKey))
+            {
+                throw new ArgumentException("Invalid or missing Coin API key. Please ensure that the API key is set and not empty.");
+            }
+
+            if (!job.BrokerageData.TryGetValue("coinapi-product", out var product) || string.IsNullOrEmpty(product))
+            {
+                product = "Free";
+            }
+
+            Initialize(apiKey, product);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="apiKey"></param>
+        /// <param name="product"></param>
+        /// <exception cref="ArgumentException"></exception>
+        private void Initialize(string apiKey, string product)
+        {
+            // ValidateSubscription();
+
+            _apiKey = apiKey;
+
+            if (!Enum.TryParse<CoinApiProduct>(product, true, out var parsedProduct) || !Enum.IsDefined(typeof(CoinApiProduct), parsedProduct))
+            {
+                throw new ArgumentException($"An error occurred while parsing the price plan '{product}'. Please ensure that the provided price plan is valid and supported by the system.");
+            }
+
+            _dataAggregator = Composer.Instance.GetPart<IDataAggregator>();
+            if (_dataAggregator == null)
+            {
+                _dataAggregator =
+                    Composer.Instance.GetExportedValueByTypeName<IDataAggregator>(Config.Get("data-aggregator", "QuantConnect.Lean.Engine.DataFeeds.AggregationManager"), forceTypeNameOnExisting: false);
+            }
+
+            _streamingDataType = parsedProduct < CoinApiProduct.Streamer
+                ? new[] { "trade" }
+                : new[] { "trade", "quote" };
+
+            Log.Trace($"{nameof(CoinApiDataProvider)}: using plan '{product}'. Available data types: '{string.Join(",", _streamingDataType)}'");
+
+            _symbolMapper = new CoinApiSymbolMapper();
+            _client = new CoinApiWsClient();
+            _client.TradeEvent += OnTrade;
+            _client.QuoteEvent += OnQuote;
+            _client.Error += OnError;
+            _subscriptionManager = new EventBasedDataQueueHandlerSubscriptionManager();
+            _subscriptionManager.SubscribeImpl += (s, t) => Subscribe(s);
+            _subscriptionManager.UnsubscribeImpl += (s, t) => Unsubscribe(s);
+            _initialized = true;
         }
 
         /// <summary>
@@ -140,8 +198,8 @@ namespace QuantConnect.DataSource.CoinAPI
         /// <param name="dataConfig">Subscription config to be removed</param>
         public void Unsubscribe(SubscriptionDataConfig dataConfig)
         {
-            _subscriptionManager.Unsubscribe(dataConfig);
-            _dataAggregator.Remove(dataConfig);
+            _subscriptionManager?.Unsubscribe(dataConfig);
+            _dataAggregator?.Remove(dataConfig);
         }
 
 
@@ -159,17 +217,20 @@ namespace QuantConnect.DataSource.CoinAPI
         /// Returns whether the data provider is connected
         /// </summary>
         /// <returns>true if the data provider is connected</returns>
-        public bool IsConnected => true;
+        public bool IsConnected { get; private set; }
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public void Dispose()
         {
-            _client.TradeEvent -= OnTrade;
-            _client.QuoteEvent -= OnQuote;
-            _client.Error -= OnError;
-            _client.Dispose();
+            if (_client != null)
+            {
+                _client.TradeEvent -= OnTrade;
+                _client.QuoteEvent -= OnQuote;
+                _client.Error -= OnError;
+                _client.Dispose();
+            }
             _dataAggregator.DisposeSafely();
         }
 
@@ -292,13 +353,22 @@ namespace QuantConnect.DataSource.CoinAPI
                 list.Add("$no_symbol_requested$");
             }
 
-            _client.SendHelloMessage(new Hello
+            _client?.SendHelloMessage(new Hello
             {
                 apikey = Guid.Parse(_apiKey),
                 heartbeat = true,
                 subscribe_data_type = _streamingDataType,
                 subscribe_filter_symbol_id = list.ToArray()
             });
+
+            if (!IsConnected && !_client.ConnectedEvent.WaitOne(TimeSpan.FromSeconds(30)))
+            {
+                throw new Exception("Not connected...");
+            }
+            else
+            {
+                IsConnected = true;
+            }
 
             _nextHelloMessageUtcTime = DateTime.UtcNow.Add(_minimumTimeBetweenHelloMessages);
         }
@@ -381,6 +451,7 @@ namespace QuantConnect.DataSource.CoinAPI
 
         private void OnError(object? sender, Exception e)
         {
+            IsConnected = false;
             Log.Error(e);
         }
 
