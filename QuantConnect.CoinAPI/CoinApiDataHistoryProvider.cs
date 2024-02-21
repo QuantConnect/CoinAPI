@@ -56,7 +56,7 @@ namespace QuantConnect.DataSource.CoinAPI
 
         public IEnumerable<BaseData> GetHistory(HistoryRequest historyRequest)
         {
-            if (historyRequest.Symbol.SecurityType != SecurityType.Crypto && historyRequest.Symbol.SecurityType != SecurityType.CryptoFuture)
+            if (!CanSubscribe(historyRequest.Symbol))
             {
                 Log.Error($"CoinApiDataProvider.GetHistory(): Invalid security type {historyRequest.Symbol.SecurityType}");
                 yield break;
