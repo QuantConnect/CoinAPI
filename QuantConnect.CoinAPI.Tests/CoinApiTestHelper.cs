@@ -68,7 +68,7 @@ namespace QuantConnect.Lean.DataSource.CoinAPI.Tests
                         Assert.IsTrue(trade.Period.ToHigherResolutionEquivalent(true) == expectedResolution);
                         break;
                     default:
-                        Assert.Fail($"{nameof(CoinApiDataQueueHandlerTest)}.{nameof(AssertBaseData)}: The tick type doesn't support");
+                        Assert.Fail($"{nameof(CoinApiDataProviderTests)}.{nameof(AssertBaseData)}: The tick type doesn't support");
                         break;
                 }
             }
