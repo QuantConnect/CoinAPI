@@ -15,6 +15,7 @@
 
 using NUnit.Framework;
 using QuantConnect.Util;
+using QuantConnect.Tests;
 using QuantConnect.Logging;
 
 namespace QuantConnect.DataSource.CoinAPI.Tests
@@ -92,6 +93,7 @@ namespace QuantConnect.DataSource.CoinAPI.Tests
         {
             get
             {
+                TestGlobals.Initialize();
                 yield return new TestCaseData(Symbol.Create("BTCBTC", SecurityType.Crypto, Market.Binance))
                     .SetDescription($"Wrong Symbol - 'BTCBTC'");
                 yield return new TestCaseData(Symbol.Create("ETHUSDT", SecurityType.Equity, Market.Binance))
