@@ -20,7 +20,7 @@ using QuantConnect.Util;
 using QuantConnect.Data.Market;
 using QuantConnect.Securities;
 
-namespace QuantConnect.CoinAPI.Tests
+namespace QuantConnect.DataSource.CoinAPI.Tests
 {
     [TestFixture]
     public class CoinAPIHistoryProviderTests

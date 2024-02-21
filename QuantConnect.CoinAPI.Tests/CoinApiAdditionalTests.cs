@@ -16,7 +16,7 @@
 using NUnit.Framework;
 using QuantConnect.Configuration;
 
-namespace QuantConnect.CoinAPI.Tests
+namespace QuantConnect.DataSource.CoinAPI.Tests
 {
     [TestFixture]
     public class CoinApiAdditionalTests

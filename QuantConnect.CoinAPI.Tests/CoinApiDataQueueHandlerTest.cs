@@ -21,7 +21,7 @@ using QuantConnect.Logging;
 using QuantConnect.Data.Market;
 using System.Collections.Concurrent;
 
-namespace QuantConnect.CoinAPI.Tests
+namespace QuantConnect.DataSource.CoinAPI.Tests
 {
     [TestFixture]
     public class CoinApiDataQueueHandlerTest

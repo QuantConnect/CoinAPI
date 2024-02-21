@@ -19,12 +19,12 @@ using Newtonsoft.Json;
 using QuantConnect.Data;
 using QuantConnect.Logging;
 using QuantConnect.Data.Market;
-using QuantConnect.CoinAPI.Messages;
+using QuantConnect.DataSource.CoinAPI.Messages;
 using QuantConnect.Lean.Engine.DataFeeds;
 using HistoryRequest = QuantConnect.Data.HistoryRequest;
-using QuantConnect.CoinAPI.Models;
+using QuantConnect.DataSource.CoinAPI.Models;
 
-namespace QuantConnect.CoinAPI
+namespace QuantConnect.DataSource.CoinAPI
 {
     public partial class CoinApiDataQueueHandler
     {

@@ -15,7 +15,7 @@
 
 using Newtonsoft.Json;
 
-namespace QuantConnect.CoinAPI.Messages
+namespace QuantConnect.DataSource.CoinAPI.Messages
 {
     public class HelloMessage
     {

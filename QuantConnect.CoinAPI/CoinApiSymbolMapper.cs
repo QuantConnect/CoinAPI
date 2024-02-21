@@ -18,9 +18,9 @@ using QuantConnect.Logging;
 using QuantConnect.Securities;
 using QuantConnect.Brokerages;
 using QuantConnect.Configuration;
-using QuantConnect.CoinAPI.Models;
+using QuantConnect.DataSource.CoinAPI.Models;
 
-namespace QuantConnect.CoinAPI
+namespace QuantConnect.DataSource.CoinAPI
 {
     /// <summary>
     /// Provides the mapping between Lean symbols and CoinAPI symbols.

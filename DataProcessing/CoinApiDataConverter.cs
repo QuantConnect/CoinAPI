@@ -19,7 +19,7 @@ using QuantConnect.Util;
 using System.Diagnostics;
 using QuantConnect.Logging;
 using QuantConnect.ToolBox;
-using QuantConnect.CoinAPI;
+using QuantConnect.DataSource.CoinAPI;
 
 namespace QuantConnect.DataProcessing
 {

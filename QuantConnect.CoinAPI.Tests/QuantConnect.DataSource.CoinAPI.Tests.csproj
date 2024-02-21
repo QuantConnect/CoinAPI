@@ -5,10 +5,10 @@
 		<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 		<TargetFramework>net6.0</TargetFramework>
 		<OutputPath>bin\$(Configuration)\</OutputPath>
-		<Product>QuantConnect.CoinAPI.Tests</Product>
-		<AssemblyName>QuantConnect.CoinAPI.Tests</AssemblyName>
-		<RootNamespace>QuantConnect.CoinAPI.Tests</RootNamespace>
-		<AssemblyTitle>QuantConnect.CoinAPI.Tests</AssemblyTitle>
+		<Product>QuantConnect.DataSource.CoinAPI.Tests</Product>
+		<AssemblyName>QuantConnect.DataSource.CoinAPI.Tests</AssemblyName>
+		<RootNamespace>QuantConnect.DataSource.CoinAPI.Tests</RootNamespace>
+		<AssemblyTitle>QuantConnect.DataSource.CoinAPI.Tests</AssemblyTitle>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
@@ -30,7 +30,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\QuantConnect.CoinAPI\QuantConnect.CoinAPI.csproj" />
+		<ProjectReference Include="..\QuantConnect.CoinAPI\QuantConnect.DataSource.CoinAPI.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -19,7 +19,7 @@ using QuantConnect.Data;
 using QuantConnect.Logging;
 using QuantConnect.Data.Market;
 
-namespace QuantConnect.CoinAPI.Tests
+namespace QuantConnect.DataSource.CoinAPI.Tests
 {
     public static class CoinApiTestHelper
     {

@@ -15,7 +15,7 @@
 
 using Newtonsoft.Json;
 
-namespace QuantConnect.CoinAPI.Models
+namespace QuantConnect.DataSource.CoinAPI.Models
 {
     public readonly struct CoinApiErrorResponse
     {

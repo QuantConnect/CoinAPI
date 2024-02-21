@@ -19,7 +19,7 @@ using QuantConnect.Logging;
 using QuantConnect.Securities;
 using QuantConnect.Data.Market;
 
-namespace QuantConnect.CoinAPI
+namespace QuantConnect.DataSource.CoinAPI
 {
     public class CoinAPIDataDownloader : IDataDownloader, IDisposable
     {

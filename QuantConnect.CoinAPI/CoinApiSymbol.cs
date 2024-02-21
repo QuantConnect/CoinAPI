@@ -15,7 +15,7 @@
 
 using Newtonsoft.Json;
 
-namespace QuantConnect.CoinAPI
+namespace QuantConnect.DataSource.CoinAPI
 {
     public class CoinApiSymbol
     {
