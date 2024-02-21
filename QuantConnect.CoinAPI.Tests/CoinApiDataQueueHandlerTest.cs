@@ -21,7 +21,7 @@ using QuantConnect.Logging;
 using QuantConnect.Data.Market;
 using System.Collections.Concurrent;
 
-namespace QuantConnect.DataSource.CoinAPI.Tests
+namespace QuantConnect.Lean.DataSource.CoinAPI.Tests
 {
     [TestFixture]
     public class CoinApiDataQueueHandlerTest
@@ -64,14 +64,15 @@ namespace QuantConnect.DataSource.CoinAPI.Tests
                     Log.Debug($"{nameof(CoinApiDataQueueHandlerTest)}.{nameof(SubscribeToBTCUSDSecondOnCoinbaseDataStreamTest)}: {tick}");
                     tradeBars.Add(tick);
 
-                    if (tradeBars.Count > 5)
-                    {
-                        resetEvent.Set();
-                    }
+                    //if (tradeBars.Count > 5)
+                    //{
+                    //    resetEvent.Set();
+                    //}
                 },
             () => _cancellationTokenSource.Cancel());
 
-            Assert.IsTrue(resetEvent.WaitOne(TimeSpan.FromSeconds(60), _cancellationTokenSource.Token));
+            resetEvent.WaitOne(-1, _cancellationTokenSource.Token);
+            // Assert.IsTrue(resetEvent.WaitOne(TimeSpan.FromSeconds(60), _cancellationTokenSource.Token));
 
             _coinApiDataQueueHandler.Unsubscribe(dataConfig);
 

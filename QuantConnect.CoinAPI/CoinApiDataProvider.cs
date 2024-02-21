@@ -33,7 +33,7 @@ using System.Collections.Concurrent;
 using CoinAPI.WebSocket.V1.DataModels;
 using QuantConnect.Lean.Engine.HistoricalData;
 
-namespace QuantConnect.DataSource.CoinAPI
+namespace QuantConnect.Lean.DataSource.CoinAPI
 {
     /// <summary>
     /// An implementation of <see cref="IDataQueueHandler"/> for CoinAPI

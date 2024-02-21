@@ -13,7 +13,7 @@
  * limitations under the License.
 */
 
-namespace QuantConnect.DataSource.CoinAPI
+namespace QuantConnect.Lean.DataSource.CoinAPI
 {
     /// <summary>
     /// Coin API's available tariff plans (or products).

@@ -18,7 +18,7 @@ using QuantConnect.Util;
 using QuantConnect.Tests;
 using QuantConnect.Logging;
 
-namespace QuantConnect.DataSource.CoinAPI.Tests
+namespace QuantConnect.Lean.DataSource.CoinAPI.Tests
 {
     [TestFixture]
     public class CoinAPIDataDownloaderTests
