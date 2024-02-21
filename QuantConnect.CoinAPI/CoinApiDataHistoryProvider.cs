@@ -26,7 +26,7 @@ using QuantConnect.DataSource.CoinAPI.Models;
 
 namespace QuantConnect.DataSource.CoinAPI
 {
-    public partial class CoinApiDataQueueHandler
+    public partial class CoinApiDataProvider
     {
         private readonly RestClient restClient = new RestClient();
 
@@ -58,13 +58,13 @@ namespace QuantConnect.DataSource.CoinAPI
         {
             if (historyRequest.Symbol.SecurityType != SecurityType.Crypto && historyRequest.Symbol.SecurityType != SecurityType.CryptoFuture)
             {
-                Log.Error($"CoinApiDataQueueHandler.GetHistory(): Invalid security type {historyRequest.Symbol.SecurityType}");
+                Log.Error($"CoinApiDataProvider.GetHistory(): Invalid security type {historyRequest.Symbol.SecurityType}");
                 yield break;
             }
 
             if (historyRequest.Resolution == Resolution.Tick)
             {
-                Log.Error($"CoinApiDataQueueHandler.GetHistory(): No historical ticks, only OHLCV timeseries");
+                Log.Error($"CoinApiDataProvider.GetHistory(): No historical ticks, only OHLCV timeseries");
                 yield break;
             }
 
@@ -72,7 +72,7 @@ namespace QuantConnect.DataSource.CoinAPI
             {
                 if (!_invalidHistoryDataTypeWarningFired)
                 {
-                    Log.Error("CoinApiDataQueueHandler.GetHistory(): No historical QuoteBars , only TradeBars");
+                    Log.Error("CoinApiDataProvider.GetHistory(): No historical QuoteBars , only TradeBars");
                     _invalidHistoryDataTypeWarningFired = true;
                 }
                 yield break;
@@ -128,7 +128,7 @@ namespace QuantConnect.DataSource.CoinAPI
                 // Can be no historical data for a short period interval
                 if (!coinApiHistoryBars.Any())
                 {
-                    Log.Error($"CoinApiDataQueueHandler.GetHistory(): API returned no data for the requested period [{coinApiStartTime} - {coinApiEndTime}] for symbol [{historyRequest.Symbol}]");
+                    Log.Error($"CoinApiDataProvider.GetHistory(): API returned no data for the requested period [{coinApiStartTime} - {coinApiEndTime}] for symbol [{historyRequest.Symbol}]");
                     continue;
                 }
 
@@ -150,7 +150,7 @@ namespace QuantConnect.DataSource.CoinAPI
             var used = GetHttpHeaderValue(response, "x-ratelimit-used");
             var remaining = GetHttpHeaderValue(response, "x-ratelimit-remaining");
 
-            Log.Trace($"CoinApiDataQueueHandler.TraceRestUsage(): Used {used}, Remaining {remaining}, Total {total}");
+            Log.Trace($"CoinApiDataProvider.TraceRestUsage(): Used {used}, Remaining {remaining}, Total {total}");
         }
 
         private string GetHttpHeaderValue(IRestResponse response, string propertyName)

@@ -114,7 +114,7 @@ namespace QuantConnect.DataSource.CoinAPI.Tests
             }
         }
 
-        public class CoinApiDataQueueHandlerMock : CoinApiDataQueueHandler
+        public class CoinApiDataQueueHandlerMock : CoinApiDataProvider
         {
             public new void SetUpHistDataLimit(int limit)
             {

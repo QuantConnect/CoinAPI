@@ -38,7 +38,7 @@ namespace QuantConnect.DataSource.CoinAPI
     /// <summary>
     /// An implementation of <see cref="IDataQueueHandler"/> for CoinAPI
     /// </summary>
-    public partial class CoinApiDataQueueHandler : SynchronizingHistoryProvider, IDataQueueHandler
+    public partial class CoinApiDataProvider : SynchronizingHistoryProvider, IDataQueueHandler
     {
         protected int HistoricalDataPerRequestLimit = 10000;
         private static readonly Dictionary<Resolution, string> _ResolutionToCoinApiPeriodMappings = new Dictionary<Resolution, string>
@@ -69,9 +69,9 @@ namespace QuantConnect.DataSource.CoinAPI
         private readonly ConcurrentDictionary<string, Tick> _previousQuotes = new ConcurrentDictionary<string, Tick>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CoinApiDataQueueHandler"/> class
+        /// Initializes a new instance of the <see cref="CoinApiDataProvider"/> class
         /// </summary>
-        public CoinApiDataQueueHandler()
+        public CoinApiDataProvider()
         {
             _dataAggregator = Composer.Instance.GetPart<IDataAggregator>();
             if (_dataAggregator == null)
@@ -84,7 +84,7 @@ namespace QuantConnect.DataSource.CoinAPI
                 ? new[] { "trade" }
                 : new[] { "trade", "quote" };
 
-            Log.Trace($"{nameof(CoinApiDataQueueHandler)}: using plan '{product}'. Available data types: '{string.Join(",", _streamingDataType)}'");
+            Log.Trace($"{nameof(CoinApiDataProvider)}: using plan '{product}'. Available data types: '{string.Join(",", _streamingDataType)}'");
 
             ValidateSubscription();
 
@@ -179,7 +179,7 @@ namespace QuantConnect.DataSource.CoinAPI
         /// <param name="markets">List of LEAN markets (exchanges) to subscribe</param>
         public void SubscribeMarkets(List<string> markets)
         {
-            Log.Trace($"CoinApiDataQueueHandler.SubscribeMarkets(): {string.Join(",", markets)}");
+            Log.Trace($"CoinApiDataProvider.SubscribeMarkets(): {string.Join(",", markets)}");
 
             // we add '_' to be more precise, for example requesting 'BINANCE' doesn't match 'BINANCEUS'
             SendHelloMessage(markets.Select(x => string.Concat(_symbolMapper.GetExchangeId(x.ToLowerInvariant()), "_")));
@@ -263,7 +263,7 @@ namespace QuantConnect.DataSource.CoinAPI
         /// <param name="symbolsToSubscribe">The list of symbols to subscribe</param>
         private void SubscribeSymbols(List<Symbol> symbolsToSubscribe)
         {
-            Log.Trace($"CoinApiDataQueueHandler.SubscribeSymbols(): {string.Join(",", symbolsToSubscribe)}");
+            Log.Trace($"CoinApiDataProvider.SubscribeSymbols(): {string.Join(",", symbolsToSubscribe)}");
 
             // subscribe to symbols using exact match
             SendHelloMessage(symbolsToSubscribe.Select(x =>
@@ -518,7 +518,7 @@ namespace QuantConnect.DataSource.CoinAPI
             }
             catch (Exception e)
             {
-                Log.Error($"{nameof(CoinApiDataQueueHandler)}.{nameof(ValidateSubscription)}: Failed during validation, shutting down. Error : {e.Message}");
+                Log.Error($"{nameof(CoinApiDataProvider)}.{nameof(ValidateSubscription)}: Failed during validation, shutting down. Error : {e.Message}");
                 throw;
             }
         }

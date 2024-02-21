@@ -28,7 +28,7 @@ namespace QuantConnect.DataSource.CoinAPI.Tests
 
             Assert.Throws<Exception>(() =>
             {
-                using var _coinApiDataQueueHandler = new CoinApiDataQueueHandler();
+                using var _coinApiDataQueueHandler = new CoinApiDataProvider();
             });
 
             // reset api key

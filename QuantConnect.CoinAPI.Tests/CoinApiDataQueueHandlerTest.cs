@@ -26,7 +26,7 @@ namespace QuantConnect.DataSource.CoinAPI.Tests
     [TestFixture]
     public class CoinApiDataQueueHandlerTest
     {
-        private CoinApiDataQueueHandler _coinApiDataQueueHandler;
+        private CoinApiDataProvider _coinApiDataQueueHandler;
         private CancellationTokenSource _cancellationTokenSource;
 
         [SetUp]

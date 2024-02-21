@@ -23,13 +23,13 @@ namespace QuantConnect.DataSource.CoinAPI
 {
     public class CoinAPIDataDownloader : IDataDownloader, IDisposable
     {
-        private readonly CoinApiDataQueueHandler _historyProvider;
+        private readonly CoinApiDataProvider _historyProvider;
 
         private readonly MarketHoursDatabase _marketHoursDatabase;
 
         public CoinAPIDataDownloader()
         {
-            _historyProvider = new CoinApiDataQueueHandler();
+            _historyProvider = new CoinApiDataProvider();
             _marketHoursDatabase = MarketHoursDatabase.FromDataFolder();
         }
 
