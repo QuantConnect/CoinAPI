@@ -56,4 +56,4 @@ jobs:
         run: dotnet build ./QuantConnect.CoinAPI.Tests/QuantConnect.DataSource.CoinAPI.Tests.csproj /p:Configuration=Release /v:quiet /p:WarningLevel=1
 
       - name: Run QuantConnect.DataSource.CoinAPI.Tests
-        run: dotnet test ./QuantConnect.CoinAPI.Tests/bin/Release/QuantConnect.DataSource.CoinAPI.Tests.dll
+        run: dotnet test ./QuantConnect.CoinAPI.Tests/bin/Release/QuantConnect.Lean.DataSource.CoinAPI.Tests.dll
