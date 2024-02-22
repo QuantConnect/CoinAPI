@@ -96,8 +96,8 @@ namespace QuantConnect.Lean.DataSource.CoinAPI.Tests
                 TestGlobals.Initialize();
                 yield return new TestCaseData(Symbol.Create("BTCBTC", SecurityType.Crypto, Market.Binance))
                     .SetDescription($"Wrong Symbol - 'BTCBTC'");
-                yield return new TestCaseData(Symbol.Create("ETHUSDT", SecurityType.Equity, Market.Binance))
-                    .SetDescription($"Wrong SecurityType - {SecurityType.Equity}");
+                yield return new TestCaseData(Symbol.Create("ETHUSDT", SecurityType.Forex, Market.Binance))
+                    .SetDescription($"Wrong SecurityType - {SecurityType.Forex}");
             }
         }
 
