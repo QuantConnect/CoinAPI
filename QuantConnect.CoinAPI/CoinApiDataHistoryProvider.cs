@@ -48,8 +48,19 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
             foreach (var request in requests)
             {
                 var history = GetHistory(request);
+
+                if (history == null)
+                {
+                    continue;
+                }
+
                 var subscription = CreateSubscription(request, history);
                 subscriptions.Add(subscription);
+            }
+
+            if (subscriptions.Count == 0)
+            {
+                return null;
             }
             return CreateSliceEnumerableFromSubscriptions(subscriptions, sliceTimeZone);
         }
@@ -59,13 +70,13 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
             if (!CanSubscribe(historyRequest.Symbol))
             {
                 Log.Error($"CoinApiDataProvider.GetHistory(): Invalid security type {historyRequest.Symbol.SecurityType}");
-                yield break;
+                return null;
             }
 
             if (historyRequest.Resolution == Resolution.Tick)
             {
                 Log.Error($"CoinApiDataProvider.GetHistory(): No historical ticks, only OHLCV timeseries");
-                yield break;
+                return null;
             }
 
             if (historyRequest.DataType == typeof(QuoteBar))
@@ -75,12 +86,21 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
                     Log.Error("CoinApiDataProvider.GetHistory(): No historical QuoteBars , only TradeBars");
                     _invalidHistoryDataTypeWarningFired = true;
                 }
-                yield break;
+                return null;
             }
 
-            var resolutionTimeSpan = historyRequest.Resolution.ToTimeSpan();
-            var lastRequestedBarStartTime = historyRequest.EndTimeUtc.RoundDown(resolutionTimeSpan);
-            var currentStartTime = historyRequest.StartTimeUtc.RoundUp(resolutionTimeSpan);
+            return GetHistory(historyRequest.Symbol,
+                historyRequest.Resolution,
+                historyRequest.StartTimeUtc,
+                historyRequest.EndTimeUtc
+                );
+        }
+
+        private IEnumerable<BaseData> GetHistory(Symbol symbol, Resolution resolution, DateTime startDateTimeUtc, DateTime endDateTimeUtc)
+        {
+            var resolutionTimeSpan = resolution.ToTimeSpan();
+            var lastRequestedBarStartTime = endDateTimeUtc.RoundDown(resolutionTimeSpan);
+            var currentStartTime = startDateTimeUtc.RoundUp(resolutionTimeSpan);
             var currentEndTime = lastRequestedBarStartTime;
 
             // Perform a check of the number of bars requested, this must not exceed a static limit
@@ -95,8 +115,8 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
 
             while (currentStartTime < lastRequestedBarStartTime)
             {
-                var coinApiSymbol = _symbolMapper.GetBrokerageSymbol(historyRequest.Symbol);
-                var coinApiPeriod = _ResolutionToCoinApiPeriodMappings[historyRequest.Resolution];
+                var coinApiSymbol = _symbolMapper.GetBrokerageSymbol(symbol);
+                var coinApiPeriod = _ResolutionToCoinApiPeriodMappings[resolution];
 
                 // Time must be in ISO 8601 format
                 var coinApiStartTime = currentStartTime.ToStringInvariant("s");
@@ -128,15 +148,15 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
                 // Can be no historical data for a short period interval
                 if (!coinApiHistoryBars.Any())
                 {
-                    Log.Error($"CoinApiDataProvider.GetHistory(): API returned no data for the requested period [{coinApiStartTime} - {coinApiEndTime}] for symbol [{historyRequest.Symbol}]");
+                    Log.Error($"CoinApiDataProvider.GetHistory(): API returned no data for the requested period [{coinApiStartTime} - {coinApiEndTime}] for symbol [{symbol}]");
                     continue;
                 }
 
                 foreach (var ohlcv in coinApiHistoryBars)
                 {
                     yield return
-                        new TradeBar(ohlcv.TimePeriodStart, historyRequest.Symbol, ohlcv.PriceOpen, ohlcv.PriceHigh,
-                            ohlcv.PriceLow, ohlcv.PriceClose, ohlcv.VolumeTraded, historyRequest.Resolution.ToTimeSpan());
+                        new TradeBar(ohlcv.TimePeriodStart, symbol, ohlcv.PriceOpen, ohlcv.PriceHigh,
+                            ohlcv.PriceLow, ohlcv.PriceClose, ohlcv.VolumeTraded, resolutionTimeSpan);
                 }
 
                 currentStartTime = currentEndTime;

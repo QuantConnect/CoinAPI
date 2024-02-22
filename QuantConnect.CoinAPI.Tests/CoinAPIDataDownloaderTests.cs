@@ -53,8 +53,9 @@ namespace QuantConnect.Lean.DataSource.CoinAPI.Tests
         {
             var parameters = new DataDownloaderGetParameters(symbol, resolution, startDateTimeUtc, endDateTimeUtc, TickType.Trade);
 
-            var downloadResponse = _downloader.Get(parameters).ToList();
+            var downloadResponse = _downloader.Get(parameters)?.ToList();
 
+            Assert.IsNotNull(downloadResponse);
             Assert.IsNotEmpty(downloadResponse);
 
             Log.Trace($"{symbol}.{resolution}.[{startDateTimeUtc} - {endDateTimeUtc}]: Amount = {downloadResponse.Count}");
@@ -84,9 +85,9 @@ namespace QuantConnect.Lean.DataSource.CoinAPI.Tests
         {
             var parameters = new DataDownloaderGetParameters(symbol, resolution, startDateTimeUtc, endDateTimeUtc, tickType);
 
-            var downloadResponse = _downloader.Get(parameters).ToList();
+            var downloadResponse = _downloader.Get(parameters)?.ToList();
 
-            Assert.IsEmpty(downloadResponse);
+            Assert.IsNull(downloadResponse);
         }
 
         private static IEnumerable<TestCaseData> HistoricalInvalidDataThrowExceptionTestCases
@@ -106,7 +107,7 @@ namespace QuantConnect.Lean.DataSource.CoinAPI.Tests
         {
             var parameters = new DataDownloaderGetParameters(symbol, Resolution.Minute, new DateTime(2024, 1, 1), new DateTime(2024, 2, 1), TickType.Trade);
 
-            Assert.That(() => _downloader.Get(parameters).ToList(), Throws.Exception);
+            Assert.That(() => _downloader.Get(parameters)?.ToList(), Throws.Exception);
         }
     }
 }

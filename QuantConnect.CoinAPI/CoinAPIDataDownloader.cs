@@ -33,19 +33,19 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
             _marketHoursDatabase = MarketHoursDatabase.FromDataFolder();
         }
 
-        public IEnumerable<BaseData> Get(DataDownloaderGetParameters dataDownloaderGetParameters)
+        public IEnumerable<BaseData>? Get(DataDownloaderGetParameters dataDownloaderGetParameters)
         {
             if (dataDownloaderGetParameters.TickType != TickType.Trade)
             {
                 Log.Error($"{nameof(CoinAPIDataDownloader)}.{nameof(Get)}: Not supported data type - {dataDownloaderGetParameters.TickType}. " +
                     $"Currently available support only for historical of type - {nameof(TickType.Trade)}");
-                yield break;
+                return null;
             }
 
             if (dataDownloaderGetParameters.EndUtc < dataDownloaderGetParameters.StartUtc)
             {
                 Log.Error($"{nameof(CoinAPIDataDownloader)}.{nameof(Get)}:InvalidDateRange. The history request start date must precede the end date, no history returned");
-                yield break;
+                return null;
             }
 
             var symbol = dataDownloaderGetParameters.Symbol;
@@ -64,7 +64,20 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
                     dataNormalizationMode: DataNormalizationMode.Raw,
                     tickType: TickType.Trade);
 
-            foreach (var slice in _historyProvider.GetHistory(historyRequests))
+            var history = _historyProvider.GetHistory(historyRequests);
+
+            // historyRequest contains wrong data request
+            if (history == null)
+            {
+                return null;
+            }
+
+            return GetHistoryInSlice(history);
+        }
+
+        private IEnumerable<BaseData> GetHistoryInSlice(IEnumerable<BaseData> history)
+        {
+            foreach (var slice in history)
             {
                 yield return slice;
             }
