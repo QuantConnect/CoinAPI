@@ -149,7 +149,7 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
         /// <exception cref="ArgumentException"></exception>
         private void Initialize(string apiKey, string product)
         {
-            // ValidateSubscription();
+            ValidateSubscription();
 
             _apiKey = apiKey;
 
@@ -365,10 +365,8 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
             {
                 throw new Exception("Not connected...");
             }
-            else
-            {
-                IsConnected = true;
-            }
+
+            IsConnected = true;
 
             _nextHelloMessageUtcTime = DateTime.UtcNow.Add(_minimumTimeBetweenHelloMessages);
         }

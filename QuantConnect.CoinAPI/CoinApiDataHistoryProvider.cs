@@ -37,12 +37,23 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
         /// </summary>
         private bool _invalidHistoryDataTypeWarningFired;
 
+        /// <summary>
+        /// Indicates whether the warning for invalid <see cref="SecurityType"/> has been fired.
+        /// </summary>
+        private bool _invalidSecurityTypeWarningFired;
+
+        /// <summary>
+        /// Indicates whether the warning for invalid <see cref="Resolution"/> has been fired.
+        /// </summary>
+        private bool _invalidResolutionTypeWarningFired;
+
+
         public override void Initialize(HistoryProviderInitializeParameters parameters)
         {
             // NOP
         }
 
-        public override IEnumerable<Slice> GetHistory(IEnumerable<HistoryRequest> requests, DateTimeZone sliceTimeZone)
+        public override IEnumerable<Slice>? GetHistory(IEnumerable<HistoryRequest> requests, DateTimeZone sliceTimeZone)
         {
             var subscriptions = new List<Subscription>();
             foreach (var request in requests)
@@ -65,17 +76,25 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
             return CreateSliceEnumerableFromSubscriptions(subscriptions, sliceTimeZone);
         }
 
-        public IEnumerable<BaseData> GetHistory(HistoryRequest historyRequest)
+        public IEnumerable<BaseData>? GetHistory(HistoryRequest historyRequest)
         {
             if (!CanSubscribe(historyRequest.Symbol))
             {
-                Log.Error($"CoinApiDataProvider.GetHistory(): Invalid security type {historyRequest.Symbol.SecurityType}");
+                if (!_invalidSecurityTypeWarningFired)
+                {
+                    Log.Error($"CoinApiDataProvider.GetHistory(): Invalid security type {historyRequest.Symbol.SecurityType}");
+                    _invalidSecurityTypeWarningFired = true;
+                }
                 return null;
             }
 
             if (historyRequest.Resolution == Resolution.Tick)
             {
-                Log.Error($"CoinApiDataProvider.GetHistory(): No historical ticks, only OHLCV timeseries");
+                if (!_invalidResolutionTypeWarningFired)
+                {
+                    Log.Error($"CoinApiDataProvider.GetHistory(): No historical ticks, only OHLCV timeseries");
+                    _invalidResolutionTypeWarningFired = true;
+                }
                 return null;
             }
 
