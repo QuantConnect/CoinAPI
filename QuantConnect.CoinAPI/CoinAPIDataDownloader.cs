@@ -35,22 +35,10 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
 
         public IEnumerable<BaseData>? Get(DataDownloaderGetParameters dataDownloaderGetParameters)
         {
-            if (dataDownloaderGetParameters.TickType != TickType.Trade)
-            {
-                Log.Error($"{nameof(CoinAPIDataDownloader)}.{nameof(Get)}: Not supported data type - {dataDownloaderGetParameters.TickType}. " +
-                    $"Currently available support only for historical of type - {nameof(TickType.Trade)}");
-                return null;
-            }
-
-            if (dataDownloaderGetParameters.EndUtc < dataDownloaderGetParameters.StartUtc)
-            {
-                Log.Error($"{nameof(CoinAPIDataDownloader)}.{nameof(Get)}:InvalidDateRange. The history request start date must precede the end date, no history returned");
-                return null;
-            }
-
             var symbol = dataDownloaderGetParameters.Symbol;
 
-            var historyRequests = new HistoryRequest(
+            var history = _historyProvider.GetHistory(
+                new HistoryRequest(
                     startTimeUtc: dataDownloaderGetParameters.StartUtc,
                     endTimeUtc: dataDownloaderGetParameters.EndUtc,
                     dataType: typeof(TradeBar),
@@ -62,9 +50,8 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
                     includeExtendedMarketHours: true,
                     isCustomData: false,
                     dataNormalizationMode: DataNormalizationMode.Raw,
-                    tickType: TickType.Trade);
-
-            var history = _historyProvider.GetHistory(historyRequests);
+                    tickType: TickType.Trade)
+                );
 
             // historyRequest contains wrong data request
             if (history == null)
@@ -72,15 +59,7 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
                 return null;
             }
 
-            return GetHistoryInSlice(history);
-        }
-
-        private IEnumerable<BaseData> GetHistoryInSlice(IEnumerable<BaseData> history)
-        {
-            foreach (var slice in history)
-            {
-                yield return slice;
-            }
+            return history.Select(slice => slice);
         }
 
         public void Dispose()

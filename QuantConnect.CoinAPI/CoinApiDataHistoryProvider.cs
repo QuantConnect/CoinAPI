@@ -47,6 +47,10 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
         /// </summary>
         private bool _invalidResolutionTypeWarningFired;
 
+        /// <summary>
+        /// Indicates whether a warning for an invalid start time has been fired, where the start time is greater than or equal to the end time in UTC.
+        /// </summary>
+        private bool _invalidStartTimeWarningFired;
 
         public override void Initialize(HistoryProviderInitializeParameters parameters)
         {
@@ -104,6 +108,16 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
                 {
                     Log.Error("CoinApiDataProvider.GetHistory(): No historical QuoteBars , only TradeBars");
                     _invalidHistoryDataTypeWarningFired = true;
+                }
+                return null;
+            }
+
+            if (historyRequest.EndTimeUtc < historyRequest.StartTimeUtc)
+            {
+                if (!_invalidStartTimeWarningFired)
+                {
+                    Log.Error($"{nameof(CoinAPIDataDownloader)}.{nameof(GetHistory)}:InvalidDateRange. The history request start date must precede the end date, no history returned");
+                    _invalidStartTimeWarningFired = true;
                 }
                 return null;
             }
