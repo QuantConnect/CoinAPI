@@ -217,7 +217,7 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
         /// Returns whether the data provider is connected
         /// </summary>
         /// <returns>true if the data provider is connected</returns>
-        public bool IsConnected { get; private set; }
+        public bool IsConnected => true;
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -361,13 +361,6 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
                 subscribe_filter_symbol_id = list.ToArray()
             });
 
-            if (!IsConnected && !_client.ConnectedEvent.WaitOne(TimeSpan.FromSeconds(30)))
-            {
-                throw new Exception("Not connected...");
-            }
-
-            IsConnected = true;
-
             _nextHelloMessageUtcTime = DateTime.UtcNow.Add(_minimumTimeBetweenHelloMessages);
         }
 
@@ -449,7 +442,6 @@ namespace QuantConnect.Lean.DataSource.CoinAPI
 
         private void OnError(object? sender, Exception e)
         {
-            IsConnected = false;
             Log.Error(e);
         }
 
