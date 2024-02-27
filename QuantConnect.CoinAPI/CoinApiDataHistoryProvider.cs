@@ -19,14 +19,14 @@ using Newtonsoft.Json;
 using QuantConnect.Data;
 using QuantConnect.Logging;
 using QuantConnect.Data.Market;
-using QuantConnect.CoinAPI.Messages;
+using QuantConnect.Lean.DataSource.CoinAPI.Messages;
 using QuantConnect.Lean.Engine.DataFeeds;
 using HistoryRequest = QuantConnect.Data.HistoryRequest;
-using QuantConnect.CoinAPI.Models;
+using QuantConnect.Lean.DataSource.CoinAPI.Models;
 
-namespace QuantConnect.CoinAPI
+namespace QuantConnect.Lean.DataSource.CoinAPI
 {
-    public partial class CoinApiDataQueueHandler
+    public partial class CoinApiDataProvider
     {
         private readonly RestClient restClient = new RestClient();
 
@@ -37,50 +37,103 @@ namespace QuantConnect.CoinAPI
         /// </summary>
         private bool _invalidHistoryDataTypeWarningFired;
 
+        /// <summary>
+        /// Indicates whether the warning for invalid <see cref="SecurityType"/> has been fired.
+        /// </summary>
+        private bool _invalidSecurityTypeWarningFired;
+
+        /// <summary>
+        /// Indicates whether the warning for invalid <see cref="Resolution"/> has been fired.
+        /// </summary>
+        private bool _invalidResolutionTypeWarningFired;
+
+        /// <summary>
+        /// Indicates whether a warning for an invalid start time has been fired, where the start time is greater than or equal to the end time in UTC.
+        /// </summary>
+        private bool _invalidStartTimeWarningFired;
+
         public override void Initialize(HistoryProviderInitializeParameters parameters)
         {
             // NOP
         }
 
-        public override IEnumerable<Slice> GetHistory(IEnumerable<HistoryRequest> requests, DateTimeZone sliceTimeZone)
+        public override IEnumerable<Slice>? GetHistory(IEnumerable<HistoryRequest> requests, DateTimeZone sliceTimeZone)
         {
             var subscriptions = new List<Subscription>();
             foreach (var request in requests)
             {
                 var history = GetHistory(request);
+
+                if (history == null)
+                {
+                    continue;
+                }
+
                 var subscription = CreateSubscription(request, history);
                 subscriptions.Add(subscription);
+            }
+
+            if (subscriptions.Count == 0)
+            {
+                return null;
             }
             return CreateSliceEnumerableFromSubscriptions(subscriptions, sliceTimeZone);
         }
 
-        public IEnumerable<BaseData> GetHistory(HistoryRequest historyRequest)
+        public IEnumerable<BaseData>? GetHistory(HistoryRequest historyRequest)
         {
-            if (historyRequest.Symbol.SecurityType != SecurityType.Crypto && historyRequest.Symbol.SecurityType != SecurityType.CryptoFuture)
+            if (!CanSubscribe(historyRequest.Symbol))
             {
-                Log.Error($"CoinApiDataQueueHandler.GetHistory(): Invalid security type {historyRequest.Symbol.SecurityType}");
-                yield break;
+                if (!_invalidSecurityTypeWarningFired)
+                {
+                    Log.Error($"CoinApiDataProvider.GetHistory(): Invalid security type {historyRequest.Symbol.SecurityType}");
+                    _invalidSecurityTypeWarningFired = true;
+                }
+                return null;
             }
 
             if (historyRequest.Resolution == Resolution.Tick)
             {
-                Log.Error($"CoinApiDataQueueHandler.GetHistory(): No historical ticks, only OHLCV timeseries");
-                yield break;
+                if (!_invalidResolutionTypeWarningFired)
+                {
+                    Log.Error($"CoinApiDataProvider.GetHistory(): No historical ticks, only OHLCV timeseries");
+                    _invalidResolutionTypeWarningFired = true;
+                }
+                return null;
             }
 
             if (historyRequest.DataType == typeof(QuoteBar))
             {
                 if (!_invalidHistoryDataTypeWarningFired)
                 {
-                    Log.Error("CoinApiDataQueueHandler.GetHistory(): No historical QuoteBars , only TradeBars");
+                    Log.Error("CoinApiDataProvider.GetHistory(): No historical QuoteBars , only TradeBars");
                     _invalidHistoryDataTypeWarningFired = true;
                 }
-                yield break;
+                return null;
             }
 
-            var resolutionTimeSpan = historyRequest.Resolution.ToTimeSpan();
-            var lastRequestedBarStartTime = historyRequest.EndTimeUtc.RoundDown(resolutionTimeSpan);
-            var currentStartTime = historyRequest.StartTimeUtc.RoundUp(resolutionTimeSpan);
+            if (historyRequest.EndTimeUtc < historyRequest.StartTimeUtc)
+            {
+                if (!_invalidStartTimeWarningFired)
+                {
+                    Log.Error($"{nameof(CoinAPIDataDownloader)}.{nameof(GetHistory)}:InvalidDateRange. The history request start date must precede the end date, no history returned");
+                    _invalidStartTimeWarningFired = true;
+                }
+                return null;
+            }
+
+            return GetHistory(historyRequest.Symbol,
+                historyRequest.Resolution,
+                historyRequest.StartTimeUtc,
+                historyRequest.EndTimeUtc
+                );
+        }
+
+        private IEnumerable<BaseData> GetHistory(Symbol symbol, Resolution resolution, DateTime startDateTimeUtc, DateTime endDateTimeUtc)
+        {
+            var resolutionTimeSpan = resolution.ToTimeSpan();
+            var lastRequestedBarStartTime = endDateTimeUtc.RoundDown(resolutionTimeSpan);
+            var currentStartTime = startDateTimeUtc.RoundUp(resolutionTimeSpan);
             var currentEndTime = lastRequestedBarStartTime;
 
             // Perform a check of the number of bars requested, this must not exceed a static limit
@@ -95,8 +148,8 @@ namespace QuantConnect.CoinAPI
 
             while (currentStartTime < lastRequestedBarStartTime)
             {
-                var coinApiSymbol = _symbolMapper.GetBrokerageSymbol(historyRequest.Symbol);
-                var coinApiPeriod = _ResolutionToCoinApiPeriodMappings[historyRequest.Resolution];
+                var coinApiSymbol = _symbolMapper.GetBrokerageSymbol(symbol);
+                var coinApiPeriod = _ResolutionToCoinApiPeriodMappings[resolution];
 
                 // Time must be in ISO 8601 format
                 var coinApiStartTime = currentStartTime.ToStringInvariant("s");
@@ -128,15 +181,15 @@ namespace QuantConnect.CoinAPI
                 // Can be no historical data for a short period interval
                 if (!coinApiHistoryBars.Any())
                 {
-                    Log.Error($"CoinApiDataQueueHandler.GetHistory(): API returned no data for the requested period [{coinApiStartTime} - {coinApiEndTime}] for symbol [{historyRequest.Symbol}]");
+                    Log.Error($"CoinApiDataProvider.GetHistory(): API returned no data for the requested period [{coinApiStartTime} - {coinApiEndTime}] for symbol [{symbol}]");
                     continue;
                 }
 
                 foreach (var ohlcv in coinApiHistoryBars)
                 {
                     yield return
-                        new TradeBar(ohlcv.TimePeriodStart, historyRequest.Symbol, ohlcv.PriceOpen, ohlcv.PriceHigh,
-                            ohlcv.PriceLow, ohlcv.PriceClose, ohlcv.VolumeTraded, historyRequest.Resolution.ToTimeSpan());
+                        new TradeBar(ohlcv.TimePeriodStart, symbol, ohlcv.PriceOpen, ohlcv.PriceHigh,
+                            ohlcv.PriceLow, ohlcv.PriceClose, ohlcv.VolumeTraded, resolutionTimeSpan);
                 }
 
                 currentStartTime = currentEndTime;
@@ -150,7 +203,7 @@ namespace QuantConnect.CoinAPI
             var used = GetHttpHeaderValue(response, "x-ratelimit-used");
             var remaining = GetHttpHeaderValue(response, "x-ratelimit-remaining");
 
-            Log.Trace($"CoinApiDataQueueHandler.TraceRestUsage(): Used {used}, Remaining {remaining}, Total {total}");
+            Log.Trace($"CoinApiDataProvider.TraceRestUsage(): Used {used}, Remaining {remaining}, Total {total}");
         }
 
         private string GetHttpHeaderValue(IRestResponse response, string propertyName)

@@ -20,7 +20,7 @@ using QuantConnect.Util;
 using QuantConnect.Data.Market;
 using QuantConnect.Securities;
 
-namespace QuantConnect.CoinAPI.Tests
+namespace QuantConnect.Lean.DataSource.CoinAPI.Tests
 {
     [TestFixture]
     public class CoinAPIHistoryProviderTests
@@ -52,7 +52,7 @@ namespace QuantConnect.CoinAPI.Tests
 
         [Test]
         [TestCaseSource(nameof(TestData))]
-        public void CanGetHistory(Symbol symbol, Resolution resolution, Type dataType, int period, bool isNonEmptyResult)
+        public void CanGetHistory(Symbol symbol, Resolution resolution, Type dataType, int period, bool isNotNullResult)
         {
             _coinApiDataQueueHandler.SetUpHistDataLimit(100);
 
@@ -67,14 +67,15 @@ namespace QuantConnect.CoinAPI.Tests
                     resolution, true, false, DataNormalizationMode.Raw, TickType.Trade)
             };
 
-            var slices = _coinApiDataQueueHandler.GetHistory(historyRequests, TimeZones.Utc).ToArray();
+            var slices = _coinApiDataQueueHandler.GetHistory(historyRequests, TimeZones.Utc)?.ToArray();
 
-            if (isNonEmptyResult)
+            if (isNotNullResult)
             {
+                Assert.IsNotNull(slices);
                 // For resolution larger than second do more tests
                 if (resolution > Resolution.Second)
                 {
-                    Assert.AreEqual(period, slices.Length);
+                    Assert.That(slices.Length, Is.EqualTo(period));
 
                     var firstSliceTradeBars = slices.First().Bars.Values;
 
@@ -83,8 +84,8 @@ namespace QuantConnect.CoinAPI.Tests
                     firstSliceTradeBars.DoForEach(tb =>
                     {
                         var resTimeSpan = resolution.ToTimeSpan();
-                        Assert.AreEqual(resTimeSpan, tb.Period);
-                        Assert.AreEqual(startTimeUtc.RoundUp(resTimeSpan), tb.Time);
+                        Assert.That(tb.Period, Is.EqualTo(resTimeSpan));
+                        Assert.That(tb.Time, Is.EqualTo(startTimeUtc.RoundUp(resTimeSpan)));
                     });
 
                     var lastSliceTradeBars = slices.Last().Bars.Values;
@@ -92,8 +93,8 @@ namespace QuantConnect.CoinAPI.Tests
                     lastSliceTradeBars.DoForEach(tb =>
                     {
                         var resTimeSpan = resolution.ToTimeSpan();
-                        Assert.AreEqual(resTimeSpan, tb.Period);
-                        Assert.AreEqual(nowUtc.RoundDown(resTimeSpan), tb.Time);
+                        Assert.That(tb.Period, Is.EqualTo(resTimeSpan));
+                        Assert.That(tb.Time, Is.EqualTo(nowUtc.RoundDown(resTimeSpan)));
                     });
                 }
                 // For res. second data counts, start/end dates may slightly vary from historical request's 
@@ -101,7 +102,7 @@ namespace QuantConnect.CoinAPI.Tests
                 else
                 {
                     Assert.IsTrue(slices.Length > 0);
-                    Assert.AreEqual(resolution.ToTimeSpan(), slices.First().Bars.Values.FirstOrDefault()?.Period);
+                    Assert.That(slices.First().Bars.Values.FirstOrDefault()?.Period, Is.EqualTo(resolution.ToTimeSpan()));
                 }
 
                 // Slices are ordered by time
@@ -109,12 +110,11 @@ namespace QuantConnect.CoinAPI.Tests
             }
             else
             {
-                // Empty
-                Assert.IsEmpty(slices);
+                Assert.IsNull(slices);
             }
         }
 
-        public class CoinApiDataQueueHandlerMock : CoinApiDataQueueHandler
+        public class CoinApiDataQueueHandlerMock : CoinApiDataProvider
         {
             public new void SetUpHistDataLimit(int limit)
             {

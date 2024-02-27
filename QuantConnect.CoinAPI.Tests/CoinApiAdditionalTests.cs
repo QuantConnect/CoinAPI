@@ -14,9 +14,10 @@
 */
 
 using NUnit.Framework;
+using QuantConnect.Packets;
 using QuantConnect.Configuration;
 
-namespace QuantConnect.CoinAPI.Tests
+namespace QuantConnect.Lean.DataSource.CoinAPI.Tests
 {
     [TestFixture]
     public class CoinApiAdditionalTests
@@ -28,11 +29,37 @@ namespace QuantConnect.CoinAPI.Tests
 
             Assert.Throws<Exception>(() =>
             {
-                using var _coinApiDataQueueHandler = new CoinApiDataQueueHandler();
+                using var _coinApiDataQueueHandler = new CoinApiDataProvider();
             });
 
             // reset api key
             TestSetup.GlobalSetup();
+        }
+
+        [Test]
+        public void CanInitializeUsingJobPacket()
+        {
+            var apiKey = Config.Get("coinapi-api-key");
+            Config.Set("coinapi-api-key", "");
+
+            var job = new LiveNodePacket
+            {
+                BrokerageData = new Dictionary<string, string>() {
+                    { "coinapi-api-key", "InvalidApiKeyThatWontBeUsed" },
+                    { "coinapi-product", "Startup" }
+                }
+            };
+
+            using var iexDataProvider = new CoinApiDataProvider();
+
+            // Throw because CoinApiSymbolMapper makes request to API (we have invalid api key in LiveNodePacket)
+            Assert.Throws<Exception>(() =>
+            {
+                iexDataProvider.SetJob(job);
+            });
+
+            // revert Config of ApiKey for another tests
+            Config.Set("coinapi-api-key", apiKey);
         }
     }
 }

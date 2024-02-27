@@ -19,38 +19,26 @@ using QuantConnect.Logging;
 using QuantConnect.Securities;
 using QuantConnect.Data.Market;
 
-namespace QuantConnect.CoinAPI
+namespace QuantConnect.Lean.DataSource.CoinAPI
 {
     public class CoinAPIDataDownloader : IDataDownloader, IDisposable
     {
-        private readonly CoinApiDataQueueHandler _historyProvider;
+        private readonly CoinApiDataProvider _historyProvider;
 
         private readonly MarketHoursDatabase _marketHoursDatabase;
 
         public CoinAPIDataDownloader()
         {
-            _historyProvider = new CoinApiDataQueueHandler();
+            _historyProvider = new CoinApiDataProvider();
             _marketHoursDatabase = MarketHoursDatabase.FromDataFolder();
         }
 
-        public IEnumerable<BaseData> Get(DataDownloaderGetParameters dataDownloaderGetParameters)
+        public IEnumerable<BaseData>? Get(DataDownloaderGetParameters dataDownloaderGetParameters)
         {
-            if (dataDownloaderGetParameters.TickType != TickType.Trade)
-            {
-                Log.Error($"{nameof(CoinAPIDataDownloader)}.{nameof(Get)}: Not supported data type - {dataDownloaderGetParameters.TickType}. " +
-                    $"Currently available support only for historical of type - {nameof(TickType.Trade)}");
-                yield break;
-            }
-
-            if (dataDownloaderGetParameters.EndUtc < dataDownloaderGetParameters.StartUtc)
-            {
-                Log.Error($"{nameof(CoinAPIDataDownloader)}.{nameof(Get)}:InvalidDateRange. The history request start date must precede the end date, no history returned");
-                yield break;
-            }
-
             var symbol = dataDownloaderGetParameters.Symbol;
 
-            var historyRequests = new HistoryRequest(
+            var history = _historyProvider.GetHistory(
+                new HistoryRequest(
                     startTimeUtc: dataDownloaderGetParameters.StartUtc,
                     endTimeUtc: dataDownloaderGetParameters.EndUtc,
                     dataType: typeof(TradeBar),
@@ -62,12 +50,16 @@ namespace QuantConnect.CoinAPI
                     includeExtendedMarketHours: true,
                     isCustomData: false,
                     dataNormalizationMode: DataNormalizationMode.Raw,
-                    tickType: TickType.Trade);
+                    tickType: TickType.Trade)
+                );
 
-            foreach (var slice in _historyProvider.GetHistory(historyRequests))
+            // historyRequest contains wrong data request
+            if (history == null)
             {
-                yield return slice;
+                return null;
             }
+
+            return history.Select(slice => slice);
         }
 
         public void Dispose()

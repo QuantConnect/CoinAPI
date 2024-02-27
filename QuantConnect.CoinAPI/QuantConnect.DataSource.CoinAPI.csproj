@@ -4,10 +4,10 @@
 		<Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
 		<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 		<TargetFramework>net6.0</TargetFramework>
-		<Product>QuantConnect.CoinAPI</Product>
-		<AssemblyName>QuantConnect.CoinAPI</AssemblyName>
-		<RootNamespace>QuantConnect.CoinAPI</RootNamespace>
-		<AssemblyTitle>QuantConnect.CoinAPI</AssemblyTitle>
+		<Product>QuantConnect.Lean.DataSource.CoinAPI</Product>
+		<AssemblyName>QuantConnect.Lean.DataSource.CoinAPI</AssemblyName>
+		<RootNamespace>QuantConnect.Lean.DataSource.CoinAPI</RootNamespace>
+		<AssemblyTitle>QuantConnect.Lean.DataSource.CoinAPI</AssemblyTitle>
 		<OutputType>Library</OutputType>
 		<OutputPath>bin\$(Configuration)</OutputPath>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>

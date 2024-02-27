@@ -19,7 +19,7 @@ using System.Collections;
 using QuantConnect.Logging;
 using QuantConnect.Configuration;
 
-namespace QuantConnect.CoinAPI.Tests
+namespace QuantConnect.Lean.DataSource.CoinAPI.Tests
 {
     [SetUpFixture]
     public static class TestSetup

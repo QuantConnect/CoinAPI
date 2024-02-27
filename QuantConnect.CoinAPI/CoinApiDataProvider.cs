@@ -33,12 +33,12 @@ using System.Collections.Concurrent;
 using CoinAPI.WebSocket.V1.DataModels;
 using QuantConnect.Lean.Engine.HistoricalData;
 
-namespace QuantConnect.CoinAPI
+namespace QuantConnect.Lean.DataSource.CoinAPI
 {
     /// <summary>
     /// An implementation of <see cref="IDataQueueHandler"/> for CoinAPI
     /// </summary>
-    public partial class CoinApiDataQueueHandler : SynchronizingHistoryProvider, IDataQueueHandler
+    public partial class CoinApiDataProvider : SynchronizingHistoryProvider, IDataQueueHandler
     {
         protected int HistoricalDataPerRequestLimit = 10000;
         private static readonly Dictionary<Resolution, string> _ResolutionToCoinApiPeriodMappings = new Dictionary<Resolution, string>
@@ -49,14 +49,14 @@ namespace QuantConnect.CoinAPI
             { Resolution.Daily, "1DAY" },
         };
 
-        private readonly string _apiKey = Config.Get("coinapi-api-key");
-        private readonly string[] _streamingDataType;
-        private readonly CoinApiWsClient _client;
+        private string? _apiKey;
+        private string[]? _streamingDataType;
+        private CoinApiWsClient? _client;
         private readonly object _locker = new object();
         private ConcurrentDictionary<string, Symbol> _symbolCache = new ConcurrentDictionary<string, Symbol>();
-        private readonly CoinApiSymbolMapper _symbolMapper = new CoinApiSymbolMapper();
-        private readonly IDataAggregator _dataAggregator;
-        private readonly EventBasedDataQueueHandlerSubscriptionManager _subscriptionManager;
+        private CoinApiSymbolMapper? _symbolMapper;
+        private IDataAggregator? _dataAggregator;
+        private EventBasedDataQueueHandlerSubscriptionManager? _subscriptionManager;
 
         private readonly TimeSpan _subscribeDelay = TimeSpan.FromMilliseconds(250);
         private readonly object _lockerSubscriptions = new object();
@@ -69,32 +69,28 @@ namespace QuantConnect.CoinAPI
         private readonly ConcurrentDictionary<string, Tick> _previousQuotes = new ConcurrentDictionary<string, Tick>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CoinApiDataQueueHandler"/> class
+        /// 
         /// </summary>
-        public CoinApiDataQueueHandler()
+        private bool _initialized;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CoinApiDataProvider"/> class
+        /// </summary>
+        public CoinApiDataProvider()
         {
-            _dataAggregator = Composer.Instance.GetPart<IDataAggregator>();
-            if (_dataAggregator == null)
+            if (!Config.TryGetValue<string>("coinapi-api-key", out var configApiKey) || string.IsNullOrEmpty(configApiKey))
             {
-                _dataAggregator =
-                    Composer.Instance.GetExportedValueByTypeName<IDataAggregator>(Config.Get("data-aggregator", "QuantConnect.Lean.Engine.DataFeeds.AggregationManager"), forceTypeNameOnExisting: false);
+                // If the API key is not provided, we can't do anything.
+                // The handler might going to be initialized using a node packet job.
+                return;
             }
-            var product = Config.GetValue<CoinApiProduct>("coinapi-product");
-            _streamingDataType = product < CoinApiProduct.Streamer
-                ? new[] { "trade" }
-                : new[] { "trade", "quote" };
 
-            Log.Trace($"{nameof(CoinApiDataQueueHandler)}: using plan '{product}'. Available data types: '{string.Join(",", _streamingDataType)}'");
+            if (!Config.TryGetValue<string>("coinapi-product", out var product) || string.IsNullOrEmpty(product))
+            {
+                product = "Free";
+            }
 
-            ValidateSubscription();
-
-            _client = new CoinApiWsClient();
-            _client.TradeEvent += OnTrade;
-            _client.QuoteEvent += OnQuote;
-            _client.Error += OnError;
-            _subscriptionManager = new EventBasedDataQueueHandlerSubscriptionManager();
-            _subscriptionManager.SubscribeImpl += (s, t) => Subscribe(s);
-            _subscriptionManager.UnsubscribeImpl += (s, t) => Unsubscribe(s);
+            Initialize(configApiKey, product);
         }
 
         /// <summary>
@@ -110,6 +106,11 @@ namespace QuantConnect.CoinAPI
                 return null;
             }
 
+            if (_dataAggregator == null || _subscriptionManager == null)
+            {
+                throw new InvalidOperationException($"{nameof(CoinApiDataProvider)}.{nameof(Subscribe)}: {nameof(_dataAggregator)} or {nameof(_subscriptionManager)} is not initialized.");
+            }
+
             var enumerator = _dataAggregator.Add(dataConfig, newDataAvailableHandler);
             _subscriptionManager.Subscribe(dataConfig);
 
@@ -122,6 +123,63 @@ namespace QuantConnect.CoinAPI
         /// <param name="job">Job we're subscribing for</param>
         public void SetJob(LiveNodePacket job)
         {
+            if (_initialized)
+            {
+                return;
+            }
+
+            if (!job.BrokerageData.TryGetValue("coinapi-api-key", out var apiKey) || string.IsNullOrEmpty(apiKey))
+            {
+                throw new ArgumentException("Invalid or missing Coin API key. Please ensure that the API key is set and not empty.");
+            }
+
+            if (!job.BrokerageData.TryGetValue("coinapi-product", out var product) || string.IsNullOrEmpty(product))
+            {
+                product = "Free";
+            }
+
+            Initialize(apiKey, product);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="apiKey"></param>
+        /// <param name="product"></param>
+        /// <exception cref="ArgumentException"></exception>
+        private void Initialize(string apiKey, string product)
+        {
+            ValidateSubscription();
+
+            _apiKey = apiKey;
+
+            if (!Enum.TryParse<CoinApiProduct>(product, true, out var parsedProduct) || !Enum.IsDefined(typeof(CoinApiProduct), parsedProduct))
+            {
+                throw new ArgumentException($"An error occurred while parsing the price plan '{product}'. Please ensure that the provided price plan is valid and supported by the system.");
+            }
+
+            _dataAggregator = Composer.Instance.GetPart<IDataAggregator>();
+            if (_dataAggregator == null)
+            {
+                _dataAggregator =
+                    Composer.Instance.GetExportedValueByTypeName<IDataAggregator>(Config.Get("data-aggregator", "QuantConnect.Lean.Engine.DataFeeds.AggregationManager"), forceTypeNameOnExisting: false);
+            }
+
+            _streamingDataType = parsedProduct < CoinApiProduct.Streamer
+                ? new[] { "trade" }
+                : new[] { "trade", "quote" };
+
+            Log.Trace($"{nameof(CoinApiDataProvider)}: using plan '{product}'. Available data types: '{string.Join(",", _streamingDataType)}'");
+
+            _symbolMapper = new CoinApiSymbolMapper();
+            _client = new CoinApiWsClient();
+            _client.TradeEvent += OnTrade;
+            _client.QuoteEvent += OnQuote;
+            _client.Error += OnError;
+            _subscriptionManager = new EventBasedDataQueueHandlerSubscriptionManager();
+            _subscriptionManager.SubscribeImpl += (s, t) => Subscribe(s);
+            _subscriptionManager.UnsubscribeImpl += (s, t) => Unsubscribe(s);
+            _initialized = true;
         }
 
         /// <summary>
@@ -140,8 +198,8 @@ namespace QuantConnect.CoinAPI
         /// <param name="dataConfig">Subscription config to be removed</param>
         public void Unsubscribe(SubscriptionDataConfig dataConfig)
         {
-            _subscriptionManager.Unsubscribe(dataConfig);
-            _dataAggregator.Remove(dataConfig);
+            _subscriptionManager?.Unsubscribe(dataConfig);
+            _dataAggregator?.Remove(dataConfig);
         }
 
 
@@ -166,10 +224,13 @@ namespace QuantConnect.CoinAPI
         /// </summary>
         public void Dispose()
         {
-            _client.TradeEvent -= OnTrade;
-            _client.QuoteEvent -= OnQuote;
-            _client.Error -= OnError;
-            _client.Dispose();
+            if (_client != null)
+            {
+                _client.TradeEvent -= OnTrade;
+                _client.QuoteEvent -= OnQuote;
+                _client.Error -= OnError;
+                _client.Dispose();
+            }
             _dataAggregator.DisposeSafely();
         }
 
@@ -179,7 +240,7 @@ namespace QuantConnect.CoinAPI
         /// <param name="markets">List of LEAN markets (exchanges) to subscribe</param>
         public void SubscribeMarkets(List<string> markets)
         {
-            Log.Trace($"CoinApiDataQueueHandler.SubscribeMarkets(): {string.Join(",", markets)}");
+            Log.Trace($"CoinApiDataProvider.SubscribeMarkets(): {string.Join(",", markets)}");
 
             // we add '_' to be more precise, for example requesting 'BINANCE' doesn't match 'BINANCEUS'
             SendHelloMessage(markets.Select(x => string.Concat(_symbolMapper.GetExchangeId(x.ToLowerInvariant()), "_")));
@@ -263,7 +324,7 @@ namespace QuantConnect.CoinAPI
         /// <param name="symbolsToSubscribe">The list of symbols to subscribe</param>
         private void SubscribeSymbols(List<Symbol> symbolsToSubscribe)
         {
-            Log.Trace($"CoinApiDataQueueHandler.SubscribeSymbols(): {string.Join(",", symbolsToSubscribe)}");
+            Log.Trace($"CoinApiDataProvider.SubscribeSymbols(): {string.Join(",", symbolsToSubscribe)}");
 
             // subscribe to symbols using exact match
             SendHelloMessage(symbolsToSubscribe.Select(x =>
@@ -292,7 +353,7 @@ namespace QuantConnect.CoinAPI
                 list.Add("$no_symbol_requested$");
             }
 
-            _client.SendHelloMessage(new Hello
+            _client?.SendHelloMessage(new Hello
             {
                 apikey = Guid.Parse(_apiKey),
                 heartbeat = true,
@@ -401,9 +462,9 @@ namespace QuantConnect.CoinAPI
             try
             {
                 const int productId = 335;
-                var userId = Config.GetInt("job-user-id");
-                var token = Config.Get("api-access-token");
-                var organizationId = Config.Get("job-organization-id", null);
+                var userId = Globals.UserId;
+                var token = Globals.UserToken;
+                var organizationId = Globals.OrganizationID;
                 // Verify we can authenticate with this user and token
                 var api = new ApiConnection(userId, token);
                 if (!api.Connected)
@@ -518,7 +579,7 @@ namespace QuantConnect.CoinAPI
             }
             catch (Exception e)
             {
-                Log.Error($"{nameof(CoinApiDataQueueHandler)}.{nameof(ValidateSubscription)}: Failed during validation, shutting down. Error : {e.Message}");
+                Log.Error($"{nameof(CoinApiDataProvider)}.{nameof(ValidateSubscription)}: Failed during validation, shutting down. Error : {e.Message}");
                 throw;
             }
         }

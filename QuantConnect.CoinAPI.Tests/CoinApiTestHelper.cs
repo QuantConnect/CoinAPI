@@ -19,7 +19,7 @@ using QuantConnect.Data;
 using QuantConnect.Logging;
 using QuantConnect.Data.Market;
 
-namespace QuantConnect.CoinAPI.Tests
+namespace QuantConnect.Lean.DataSource.CoinAPI.Tests
 {
     public static class CoinApiTestHelper
     {
@@ -68,7 +68,7 @@ namespace QuantConnect.CoinAPI.Tests
                         Assert.IsTrue(trade.Period.ToHigherResolutionEquivalent(true) == expectedResolution);
                         break;
                     default:
-                        Assert.Fail($"{nameof(CoinApiDataQueueHandlerTest)}.{nameof(AssertBaseData)}: The tick type doesn't support");
+                        Assert.Fail($"{nameof(CoinApiDataProviderTests)}.{nameof(AssertBaseData)}: The tick type doesn't support");
                         break;
                 }
             }

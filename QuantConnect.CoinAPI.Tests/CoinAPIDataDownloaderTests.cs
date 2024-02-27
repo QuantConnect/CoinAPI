@@ -15,9 +15,10 @@
 
 using NUnit.Framework;
 using QuantConnect.Util;
+using QuantConnect.Tests;
 using QuantConnect.Logging;
 
-namespace QuantConnect.CoinAPI.Tests
+namespace QuantConnect.Lean.DataSource.CoinAPI.Tests
 {
     [TestFixture]
     public class CoinAPIDataDownloaderTests
@@ -52,8 +53,9 @@ namespace QuantConnect.CoinAPI.Tests
         {
             var parameters = new DataDownloaderGetParameters(symbol, resolution, startDateTimeUtc, endDateTimeUtc, TickType.Trade);
 
-            var downloadResponse = _downloader.Get(parameters).ToList();
+            var downloadResponse = _downloader.Get(parameters)?.ToList();
 
+            Assert.IsNotNull(downloadResponse);
             Assert.IsNotEmpty(downloadResponse);
 
             Log.Trace($"{symbol}.{resolution}.[{startDateTimeUtc} - {endDateTimeUtc}]: Amount = {downloadResponse.Count}");
@@ -83,19 +85,20 @@ namespace QuantConnect.CoinAPI.Tests
         {
             var parameters = new DataDownloaderGetParameters(symbol, resolution, startDateTimeUtc, endDateTimeUtc, tickType);
 
-            var downloadResponse = _downloader.Get(parameters).ToList();
+            var downloadResponse = _downloader.Get(parameters)?.ToList();
 
-            Assert.IsEmpty(downloadResponse);
+            Assert.IsNull(downloadResponse);
         }
 
         private static IEnumerable<TestCaseData> HistoricalInvalidDataThrowExceptionTestCases
         {
             get
             {
+                TestGlobals.Initialize();
                 yield return new TestCaseData(Symbol.Create("BTCBTC", SecurityType.Crypto, Market.Binance))
                     .SetDescription($"Wrong Symbol - 'BTCBTC'");
-                yield return new TestCaseData(Symbol.Create("ETHUSDT", SecurityType.Equity, Market.Binance))
-                    .SetDescription($"Wrong SecurityType - {SecurityType.Equity}");
+                yield return new TestCaseData(Symbol.Create("ETHUSDT", SecurityType.Forex, Market.Binance))
+                    .SetDescription($"Wrong SecurityType - {SecurityType.Forex}");
             }
         }
 
@@ -104,7 +107,7 @@ namespace QuantConnect.CoinAPI.Tests
         {
             var parameters = new DataDownloaderGetParameters(symbol, Resolution.Minute, new DateTime(2024, 1, 1), new DateTime(2024, 2, 1), TickType.Trade);
 
-            Assert.That(() => _downloader.Get(parameters).ToList(), Throws.Exception);
+            Assert.That(() => _downloader.Get(parameters)?.ToList(), Throws.Exception);
         }
     }
 }
