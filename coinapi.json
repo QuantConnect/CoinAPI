@@ -10,7 +10,31 @@
 			"Live Trading":	[0,1,1]
 		}
 	],
-	"data-supported": [ "Crypto" ], 
+	"data-supported": [ "Crypto", "Crypto Futures" ], 
 	"more-information": "https://www.coinapi.io",
-	"documentation": ""
+	"documentation": "",
+	"module-specification": {
+		"download": {
+			"data-types": [
+				"Trade"
+			],
+			"resolutions": [
+				"Second",
+				"Minute",
+				"Hour",
+				"Daily"
+			],
+			"security-types": [
+				"Crypto",
+				"CryptoFuture"
+			],
+			"markets": [
+				"Coinbase",
+				"Bitfinex",
+				"Binance",
+				"Kraken",
+				"BinanceUS"
+			]
+		}
+	}
 }
