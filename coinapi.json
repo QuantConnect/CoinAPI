@@ -12,5 +12,29 @@
 	],
 	"data-supported": [ "Crypto" ], 
 	"more-information": "https://www.coinapi.io",
-	"documentation": ""
+	"documentation": "",
+	"module-specification": {
+		"download": {
+			"data-types": [
+				"Trade"
+			],
+			"resolutions": [
+				"Second",
+				"Minute",
+				"Hour",
+				"Daily"
+			],
+			"security-types": [
+				"Crypto",
+				"CryptoFuture"
+			],
+			"markets": [
+				"Coinbase",
+				"Bitfinex",
+				"Binance",
+				"Kraken",
+				"BinanceUS"
+			]
+		}
+	}
 }
