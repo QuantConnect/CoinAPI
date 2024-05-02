@@ -10,7 +10,7 @@
 			"Live Trading":	[0,1,1]
 		}
 	],
-	"data-supported": [ "Crypto" ], 
+	"data-supported": [ "Crypto", "Crypto Futures" ], 
 	"more-information": "https://www.coinapi.io",
 	"documentation": "",
 	"module-specification": {
